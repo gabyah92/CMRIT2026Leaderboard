@@ -1,4 +1,9 @@
+let gridApi;
+
 document.addEventListener('DOMContentLoaded', function () {
+
+    
+
     let rowData = [];
 
     $.ajax({
@@ -8,12 +13,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 header: true,
                 complete: function (results) {
                     rowData = results.data;
+                    // remove the first row if it starts with RollNumber
+                    if (rowData[0]['Handle'] === 'RollNumber') {
+                        rowData.shift();
                     console.log(rowData); // This will log the parsed CSV data
+                    }
                 }
             });
 
             console.log(rowData); // This will log the populated rowData array
-            console.log(rowData[0]['GeeksForGeeks URL Exists']); // This will log the value of the first row's 'GeeksForGeeks URL Exists' column
+            console.log(rowData[0]['GeeksForGeeksURLExists']); // This will log the value of the first row's 'GeeksForGeeksURLExists' column
 
             const gridOptions = {
                 columnDefs: [
@@ -35,45 +44,45 @@ document.addEventListener('DOMContentLoaded', function () {
                     },
                     {
                         headerName: 'GeeksForGeeks Handle',
-                        field: 'GeeksForGeeks Handle',
+                        field: 'GeeksForGeeksHandle',
                         cellStyle: function (params) {
-                            return {backgroundColor: check_url('GeeksForGeeks Handle', params.rowIndex) ? 'rag-red' : '#4d2731'};
+                            return {backgroundColor: check_url('GeeksForGeeksHandle', params.rowIndex) ? 'rag-red' : '#4d2731'};
                         },
                         filter: 'agTextColumnFilter',
                         floatingFilter: true
                     },
                     {
                         headerName: 'Codeforces Handle',
-                        field: 'Codeforces Handle',
+                        field: 'CodeforcesHandle',
                         cellStyle: function (params) {
-                            return {backgroundColor: check_url('Codeforces Handle', params.rowIndex) ? 'rag-red' : '#4d2731'};
+                            return {backgroundColor: check_url('CodeforcesHandle', params.rowIndex) ? 'rag-red' : '#4d2731'};
                         },
                         filter: 'agTextColumnFilter',
                         floatingFilter: true
                     },
                     {
                         headerName: 'LeetCode Handle',
-                        field: 'LeetCode Handle',
+                        field: 'LeetCodeHandle',
                         cellStyle: function (params) {
-                            return {backgroundColor: check_url('LeetCode Handle', params.rowIndex) ? 'rag-red' : '#4d2731'};
+                            return {backgroundColor: check_url('LeetCodeHandle', params.rowIndex) ? 'rag-red' : '#4d2731'};
                         },
                         filter: 'agTextColumnFilter',
                         floatingFilter: true
                     },
                     {
                         headerName: 'CodeChef Handle',
-                        field: 'CodeChef Handle',
+                        field: 'CodeChefHandle',
                         cellStyle: function (params) {
-                            return {backgroundColor: check_url('CodeChef Handle', params.rowIndex) ? 'rag-red' : '#4d2731'};
+                            return {backgroundColor: check_url('CodeChefHandle', params.rowIndex) ? 'rag-red' : '#4d2731'};
                         },
                         filter: 'agTextColumnFilter',
                         floatingFilter: true
                     },
                     {
                         headerName: 'HackerRank Handle',
-                        field: 'HackerRank Handle',
+                        field: 'HackerRankHandle',
                         cellStyle: function (params) {
-                            return {backgroundColor: check_url('HackerRank Handle', params.rowIndex) ? 'rag-red' : '#4d2731'};
+                            return {backgroundColor: check_url('HackerRankHandle', params.rowIndex) ? 'rag-red' : '#4d2731'};
                         },
                         filter: 'agTextColumnFilter',
                         floatingFilter: true
@@ -86,8 +95,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 rowData: rowData, // Assign the populated rowData array here
             };
 
-            const gridDiv = document.querySelector('#myGrid');
-            new agGrid.Grid(gridDiv, gridOptions);
+            const egridDiv = document.querySelector('#myGrid');
+            gridApi = agGrid.createGrid(egridDiv, gridOptions);
         }
     });
 
@@ -102,25 +111,26 @@ document.addEventListener('DOMContentLoaded', function () {
         let url_exists;
         console.log("rowIndex: " + rowIndex);
         console.log("col: " + col);
-        if (col === 'GeeksForGeeks Handle') {
-            url_exists = rowData[rowIndex]['GeeksForGeeks URL Exists'];
+        console.log("rowData[rowIndex]: " + rowData[rowIndex])
+        if (col === 'GeeksForGeeksHandle') {
+            url_exists = rowData[rowIndex]['GeeksForGeeksURLExists'];
             return url_exists === 'True';
         }
-        if (col === 'Codeforces Handle') {
-            url_exists = rowData[rowIndex]['Codeforces URL Exists'];
+        if (col === 'CodeforcesHandle') {
+            url_exists = rowData[rowIndex]['CodeforcesURLExists'];
             return url_exists === 'True';
         }
-        if (col === 'LeetCode Handle') {
-            url_exists = rowData[rowIndex]['LeetCode URL Exists'];
+        if (col === 'LeetCodeHandle') {
+            url_exists = rowData[rowIndex]['LeetCodeURLExists'];
             return url_exists === 'True';
         }
-        if (col === 'CodeChef Handle') {
-            url_exists = rowData[rowIndex]['CodeChef URL Exists'];
+        if (col === 'CodeChefHandle') {
+            url_exists = rowData[rowIndex]['CodeChefURLExists'];
             console.log("url_exists for CodeChef: " + url_exists);
             return url_exists === 'True';
         }
-        if (col === 'HackerRank Handle') {
-            url_exists = rowData[rowIndex]['HackerRank URL Exists'];
+        if (col === 'HackerRankHandle') {
+            url_exists = rowData[rowIndex]['HackerRankURLExists'];
             console.log("url_exists for HackerRank: " + url_exists);
             return url_exists === 'True';
         }
