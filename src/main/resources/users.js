@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     },
                     {
                         headerName: 'Codeforces Handle',
-                        field: 'Codeforces Handle',
+                        field: 'CodeforcesHandle',
                         cellStyle: function (params) {
                             return {backgroundColor: check_url('CodeforcesHandle', params.rowIndex) ? 'rag-red' : '#4d2731'};
                         },
