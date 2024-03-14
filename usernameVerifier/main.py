@@ -101,7 +101,7 @@ def check_url_exists(url):
             # Hackerrank handles that do not exist have the title "HTTP 404: Page Not Found | HackerRank"
             # But the title in beautiful soup is "Programming Problems and Competitions :: HackerRank"
             # If user exists, title will be " Name - User Profile | HackerRank"
-            if "Programming Problems and Competitions :: HackerRank" in title:
+            if "Programming Problems and Competitions :: HackerRank" in title or title == " HackerRank ":
                 return False, response.url
             return True, response.url
         except requests.exceptions.RequestException:
