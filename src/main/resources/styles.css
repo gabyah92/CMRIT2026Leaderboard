@@ -1,0 +1,45 @@
+.example-wrapper {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+h1{ 
+  color:white;
+}
+a{
+  color: orange;
+}
+#myGrid {
+    flex: 1 1 0px;
+    width: 100%;
+} 
+div.ag-root .ag-cell-focus {
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+}
+
+.nav {
+    background-color: black; /* Same background color as the body */
+}
+
+.nav-link {
+    /* Text size and color for nav links */
+    font-size: 1.2em;
+    color: orange; /* Text color for nav links */
+}
+
+.nav-link:hover {
+    color: khaki /* Text color for nav links on hover */
+}
+
+.nav-pills .nav-link.active, .nav-pills .show>.nav-link {
+    color: white; /* Text color for active nav link */
+    background-color: #356a9b; /* Background color for active nav link */
+}
+
+.nav-pills .nav-link.active:hover, .nav-pills .show>.nav-link:hover {
+    color: khaki; /* Text color for active nav link */
+    background-color: #356a9b; /* Background color for active nav link */
+}

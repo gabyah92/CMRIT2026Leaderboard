@@ -1,0 +1,238 @@
+name: Python application
+
+on:
+  # Trigger the workflow manually or on push to files in src/main/resources/
+  workflow_dispatch:
+  schedule:
+    - cron: '58 17 * * 1,4'
+
+jobs:
+  geeksforgeeks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4.1.1
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Download Username excel sheet # Download the Username excel sheet from the Google Sheets
+        run:  wget "https://docs.google.com/spreadsheets/u/2/d/e/2PACX-1vTMzpgGRBSpL3GyydKGAahUiNWCIb6dMKNj6XdS4ykxu8yYRfzCZa2MzowBOZWajGZl_TNJaWA-1jNq/pub?output=csv&gid=655656311&single=true" -O src/main/resources/CMRIT2026Leaderboard.csv
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r usernameVerifier/requirements.txt
+      - name: Run GeeksForGeeks platform
+        run: |
+          cd usernameVerifier
+          python main.py ../src/main/resources/CMRIT2026Leaderboard.csv geeksforgeeks
+  
+      - name: Archive GFG Handles
+        uses: actions/upload-artifact@v4
+        with:
+          name: gfg_handles
+          path: usernameVerifier/geeksforgeeks_handles.txt
+          compression-level: 9
+          retention-days: 5
+
+  codeforces:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4.1.1
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Download Username excel sheet # Download the Username excel sheet from the Google Sheets
+        run:  wget "https://docs.google.com/spreadsheets/u/2/d/e/2PACX-1vTMzpgGRBSpL3GyydKGAahUiNWCIb6dMKNj6XdS4ykxu8yYRfzCZa2MzowBOZWajGZl_TNJaWA-1jNq/pub?output=csv&gid=655656311&single=true" -O src/main/resources/CMRIT2026Leaderboard.csv
+
+      - name: Set up Python 3.10 # Set up Python version 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies # Install Python dependencies from requirements.txt
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r usernameVerifier/requirements.txt
+      - name: Run Codeforces script # Run the Python script for Codeforces
+        run: |
+          cd usernameVerifier
+          python main.py ../src/main/resources/CMRIT2026Leaderboard.csv codeforces
+          
+      - name: Archive Codeforces logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: codeforces-handles
+          path: usernameVerifier/codeforces_handles.txt
+          compression-level: 9
+          retention-days: 5  
+
+  leetcode:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4.1.1
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Download Username excel sheet # Download the Username excel sheet from the Google Sheets
+        run:  C:\msys64\usr\bin\wget.exe "https://docs.google.com/spreadsheets/u/2/d/e/2PACX-1vTMzpgGRBSpL3GyydKGAahUiNWCIb6dMKNj6XdS4ykxu8yYRfzCZa2MzowBOZWajGZl_TNJaWA-1jNq/pub?output=csv&gid=655656311&single=true" -O src/main/resources/CMRIT2026Leaderboard.csv
+
+      - name: Set up Python 3.10 # Set up Python version 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies # Install Python dependencies from requirements.txt
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r usernameVerifier/requirements.txt
+      - name: Run LeetCode script # Run the Python script for LeetCode
+        run: |
+          cd usernameVerifier
+          python -u main.py ../src/main/resources/CMRIT2026Leaderboard.csv leetcode
+          
+      - name: Archive LeetCode logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: leetcode-handles
+          path: usernameVerifier/leetcode_handles.txt
+          compression-level: 9
+          retention-days: 5
+
+
+  codechef:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4.1.1
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Download Username excel sheet # Download the Username excel sheet from the Google Sheets
+        run:  wget "https://docs.google.com/spreadsheets/u/2/d/e/2PACX-1vTMzpgGRBSpL3GyydKGAahUiNWCIb6dMKNj6XdS4ykxu8yYRfzCZa2MzowBOZWajGZl_TNJaWA-1jNq/pub?output=csv&gid=655656311&single=true" -O src/main/resources/CMRIT2026Leaderboard.csv
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r usernameVerifier/requirements.txt
+      - name: Run CodeChef processing
+        run: |
+          cd usernameVerifier
+          python main.py ../src/main/resources/CMRIT2026Leaderboard.csv codechef
+          
+      - name: Archive CodeChef logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: codechef-handles
+          path: usernameVerifier/codechef_handles.txt
+          compression-level: 9
+          retention-days: 5
+
+  hackerrank:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4.1.1
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Download Username excel sheet # Download the Username excel sheet from the Google Sheets
+        run:  wget "https://docs.google.com/spreadsheets/u/2/d/e/2PACX-1vTMzpgGRBSpL3GyydKGAahUiNWCIb6dMKNj6XdS4ykxu8yYRfzCZa2MzowBOZWajGZl_TNJaWA-1jNq/pub?output=csv&gid=655656311&single=true" -O src/main/resources/CMRIT2026Leaderboard.csv
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r usernameVerifier/requirements.txt
+      - name: Run HackerRank processing
+        run: |
+          cd usernameVerifier
+          python main.py ../src/main/resources/CMRIT2026Leaderboard.csv hackerrank
+
+      - name: Archive HackerRank logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: hackerrank-handles
+          path: usernameVerifier/hackerrank_handles.txt
+          compression-level: 9
+          retention-days: 5
+
+
+  combine:
+    runs-on: ubuntu-latest
+    needs: [geeksforgeeks, codeforces, leetcode, codechef, hackerrank]
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4.1.1
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Download Username excel sheet # Download the Username excel sheet from the Google Sheets
+        run:  wget "https://docs.google.com/spreadsheets/u/2/d/e/2PACX-1vTMzpgGRBSpL3GyydKGAahUiNWCIb6dMKNj6XdS4ykxu8yYRfzCZa2MzowBOZWajGZl_TNJaWA-1jNq/pub?output=csv&gid=655656311&single=true" -O src/main/resources/CMRIT2026Leaderboard.csv
+
+
+      - name: Download geeksforgeeks handles.
+        uses: actions/download-artifact@v4
+        with:
+          name: gfg_handles
+
+      - name: Download codeforces handles
+        uses: actions/download-artifact@v4
+        with:
+          name: codeforces-handles
+  
+      - name: Download leetcode handles
+        uses: actions/download-artifact@v4
+        with:
+          name: leetcode-handles
+  
+      - name: Download codechef handles
+        uses: actions/download-artifact@v4
+        with:
+          name: codechef-handles
+  
+      - name: Download hackerrank handles
+        uses: actions/download-artifact@v4
+        with:
+          name: hackerrank-handles
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r usernameVerifier/requirements.txt
+      - name: Run combine option
+        run: |
+          python usernameVerifier/main.py src/main/resources/CMRIT2026Leaderboard.csv combine
+          
+      - name: Get the current date
+        id: date
+        run: echo "NOW=$(date +'%Y-%m-%dT%H:%M:%S')" >> $GITHUB_ENV
+
+      - name: Commit Generated Excel File
+        run: |
+          git config --global user.email "actions@github.com"
+          git config --global user.name "GitHub Actions"
+          git add src/main/resources/participant_details.csv
+          git commit -m "Add generated Verification data - $NOW"
+          git push
