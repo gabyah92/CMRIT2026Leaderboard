@@ -53,6 +53,7 @@ class Participant:
         codechef_handle = remove_non_ascii(codechef_handle)
         hackerrank_handle = remove_non_ascii(hackerrank_handle)
         # remove @ from the leeetcode handle
+        hackerrank_handle = hackerrank_handle.replace('@', '')
         leetcode_handle = leetcode_handle.replace('@', '')
         self.handle = handle
         self.geeksforgeeks_handle = geeksforgeeks_handle
