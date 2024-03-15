@@ -55,6 +55,7 @@ class Participant:
         # remove @ from the leeetcode handle
         hackerrank_handle = hackerrank_handle.replace('@', '')
         leetcode_handle = leetcode_handle.replace('@', '')
+        geeksforgeeks_handle = geeksforgeeks_handle.strip()
         self.handle = handle
         self.geeksforgeeks_handle = geeksforgeeks_handle
         self.codeforces_handle = codeforces_handle
