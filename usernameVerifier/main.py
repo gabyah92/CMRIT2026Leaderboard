@@ -148,10 +148,10 @@ def process_geeksforgeeks(participants):
 
             # Write participant data to file
             with open('geeksforgeeks_handles.txt', 'a') as file:
-                file.write(f"{participant.handle}, {participant.geeksforgeeks_handle}, {geeksforgeeks_url_exists}\n")
+                file.write(f"{participant.handle}, {participant.geeksforgeeks_handle}, {True}\n")
             logging.debug(
                 f"Data written to file for participant {participant.handle}: {participant.geeksforgeeks_handle},"
-                f" {geeksforgeeks_url_exists}")
+                f" {True}")
             logging.debug("---------------------------------------------------")
     # Shutdown logging
     logging.shutdown()
