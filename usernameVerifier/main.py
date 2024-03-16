@@ -143,14 +143,27 @@ def process_geeksforgeeks(participants):
     # Iterate through each participant
     for participant in tqdm(participants, desc="Processing GeeksForGeeks Handles", unit="participant"):
         # Check if GeeksForGeeks handle is valid
-        if participant.geeksforgeeks_handle != '#N/A': 
+        if participant.geeksforgeeks_handle != '#N/A':
+            logging.debug(f"Checking GeeksForGeeks URL for participant {participant.handle}")
+
+            # Check if the GeeksForGeeks URL exists
+            geeksforgeeks_url_exists, response_url = check_url_exists(
+                "https://auth.geeksforgeeks.org/user/" + participant.geeksforgeeks_handle)
+            logging.debug(f"GeeksForGeeks URL exists: {geeksforgeeks_url_exists}, Response URL: {response_url}")
+
+            # Retry if the GeeksForGeeks URL does not exist
+            if not geeksforgeeks_url_exists and participant.geeksforgeeks_handle != '#N/A':
+                logging.debug(f"Retrying GeeksForGeeks URL check for participant {participant.handle}")
+                geeksforgeeks_url_exists, response_url = check_url_exists(
+                    "https://auth.geeksforgeeks.org/user/" + participant.geeksforgeeks_handle)
+                logging.debug(f"GeeksForGeeks URL retry: {geeksforgeeks_url_exists}, Response URL: {response_url}")
 
             # Write participant data to file
             with open('geeksforgeeks_handles.txt', 'a') as file:
-                file.write(f"{participant.handle}, {participant.geeksforgeeks_handle}, {True}\n")
+                file.write(f"{participant.handle}, {participant.geeksforgeeks_handle}, {geeksforgeeks_url_exists}\n")
             logging.debug(
                 f"Data written to file for participant {participant.handle}: {participant.geeksforgeeks_handle},"
-                f" {True}")
+                f" {geeksforgeeks_url_exists}")
             logging.debug("---------------------------------------------------")
     # Shutdown logging
     logging.shutdown()
