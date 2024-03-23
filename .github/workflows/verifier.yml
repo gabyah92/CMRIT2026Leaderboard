@@ -79,8 +79,11 @@ jobs:
       USERNAME: ${{ secrets.TEMP_GITHUB_PASSWORD }}
       PASSWD: ${{ secrets.TEMP_GITHUB_USERNAME }}
     steps:
+      - uses: browser-actions/setup-chrome@v1
+      - run: chrome --version
+      
       - name: Checkout Repository
-        uses: actions/checkout@v4.1.1
+        uses: actions/checkout@v4.1.1 
 
       - name: Download Username excel sheet # Download the Username excel sheet from the Google Sheets
         run:  C:\msys64\usr\bin\wget.exe "https://docs.google.com/spreadsheets/u/2/d/e/2PACX-1vTMzpgGRBSpL3GyydKGAahUiNWCIb6dMKNj6XdS4ykxu8yYRfzCZa2MzowBOZWajGZl_TNJaWA-1jNq/pub?output=csv&gid=655656311&single=true" -O src/main/resources/CMRIT2026Leaderboard.csv
