@@ -70,7 +70,7 @@ public class CMRITLeaderboard2026 {
     private static final String LEETCODE_URL = "https://leetcode.com/graphql?query=";
     private static final String GFG_URL = "https://auth.geeksforgeeks.org/user/";
     private static final String GFG_WEEKLY_CONTEST_URL = "https://practiceapi.geeksforgeeks.org/api/latest/events/recurring/gfg-weekly-coding-contest/leaderboard/?leaderboard_type=0&page=";
-    private static final String GFG_PRACTICE_URL = "https://practiceapi.geeksforgeeks.org/api/v1/institute/341/students/stats?page=";
+    private static final String GFG_PRACTICE_URL = "https://practiceapi.geeksforgeeks.org/api/v1/institute/341/students/stats?page_size=100000&page=";
     public static List<String> SEARCH_TOKENS = new ArrayList<>();
 
     static Map<String, User> userMap = new HashMap<>();
@@ -1310,10 +1310,10 @@ public class CMRITLeaderboard2026 {
         int counter = 1;
 
         // Overall Practice score scraping
-        for(int j=1;j<=100;j++) {
+        for(int j=1;j<=1;j++) {
             try {
                 // Construct URL for practice scores
-                String url = GFG_PRACTICE_URL + j + "&page_size=1000";
+                String url = GFG_PRACTICE_URL + j ;
 
                 System.out.println("Page: " + j);
 
