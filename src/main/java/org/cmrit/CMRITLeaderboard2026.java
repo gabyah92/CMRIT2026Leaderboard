@@ -693,7 +693,7 @@ public class CMRITLeaderboard2026 {
                 DecimalFormat df = new DecimalFormat("#.##");
                 double percentileD = Double.parseDouble(df.format(resultSet.getDouble("percentile")));
                 // convert to string and add % at the end
-                String percentile = percentileD + "%";
+                String percentile = String.valueOf(percentileD);
                 String codeforcesHandle = userMap.get(handle).getCodeforcesHandle();
                 String geeksforgeeksHandle = userMap.get(handle).getGeeksforgeeksHandle();
                 String leetcodeHandle = userMap.get(handle).getLeetcodeHandle();
