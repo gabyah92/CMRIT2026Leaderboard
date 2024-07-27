@@ -4,7 +4,7 @@ on:
   # Trigger the workflow manually or on push to files in src/main/resources/
   workflow_dispatch:
   schedule:
-    - cron: '58 18 * * 1,4'
+    - cron: '58 18 * * 1,6'
 
 jobs:
   geeksforgeeks:
