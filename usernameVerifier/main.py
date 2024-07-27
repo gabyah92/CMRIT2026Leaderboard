@@ -326,22 +326,22 @@ def process_codechef(participants):
 
         if participant.codechef_handle != '#N/A':
             # Check if CodeChef URL exists
-            codechef_url_exists, response_url = check_url_exists(
-                "https://www.codechef.com/users/" + participant.codechef_handle)
-            logging.debug(f"CodeChef URL exists: {codechef_url_exists}, Response URL: {response_url}")
+            #codechef_url_exists, response_url = check_url_exists(
+            #    "https://www.codechef.com/users/" + participant.codechef_handle)
+            #logging.debug(f"CodeChef URL exists: {codechef_url_exists}, Response URL: {response_url}")
 
-            if not codechef_url_exists and participant.codechef_handle != '#N/A':
-                # Retry checking CodeChef URL
-                logging.debug(f"Retrying CodeChef URL check for participant {participant.handle}")
-                codechef_url_exists, response_url = check_url_exists(
-                    "https://www.codechef.com/users/" + participant.codechef_handle)
-                logging.debug(f"CodeChef URL retry: {codechef_url_exists}, Response URL: {response_url}")
+            #if not codechef_url_exists and participant.codechef_handle != '#N/A':
+            #    # Retry checking CodeChef URL
+            #    logging.debug(f"Retrying CodeChef URL check for participant {participant.handle}")
+            #    codechef_url_exists, response_url = check_url_exists(
+            #        "https://www.codechef.com/users/" + participant.codechef_handle)
+            #    logging.debug(f"CodeChef URL retry: {codechef_url_exists}, Response URL: {response_url}")
 
-            # Write participant data to file
+            # Write participant data to file codechef_url_exists
             with open('codechef_handles.txt', 'a') as file:
-                file.write(f"{participant.handle}, {participant.codechef_handle}, {codechef_url_exists}\n")
+                file.write(f"{participant.handle}, {participant.codechef_handle}, {True}\n")
             logging.debug(f"Data written to file for participant {participant.handle}: {participant.codechef_handle},"
-                          f" {codechef_url_exists}")
+                          f" {True}")
             logging.debug("---------------------------------------------------")
 
     logging.shutdown()
