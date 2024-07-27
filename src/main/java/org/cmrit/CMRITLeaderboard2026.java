@@ -866,7 +866,7 @@ public class CMRITLeaderboard2026 {
                 connection = websiteUrl.toURL().openConnection();
                 o = (HttpURLConnection) connection;
                 o.setRequestMethod("GET");
-                if(o.getResponseCode() == 500 ) continue;
+                if(o.getResponseCode() == 500 ) { Thread.sleep(9000); continue; }
                 else if (o.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND || o.getResponseCode() == HttpURLConnection.HTTP_BAD_REQUEST) {
                     throw new RuntimeException();
                 }
