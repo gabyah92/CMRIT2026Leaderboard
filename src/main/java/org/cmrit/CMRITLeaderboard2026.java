@@ -65,7 +65,7 @@ public class CMRITLeaderboard2026 {
             "geeksforgeeks_url_exists, codeforces_url_exists, leetcode_url_exists, codechef_url_exists, hackerrank_url_exists) " +
             "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-    private static final String CODECHEF_URL = "https://codechef-api.vercel.app/";
+    private static final String CODECHEF_URL = "https://codechef-api-one.vercel.app/";
     private static final String CODEFORCES_URL = "https://codeforces.com/api/user.info?handles=";
     private static final String LEETCODE_URL = "https://leetcode.com/graphql?query=";
     private static final String GFG_URL = "https://auth.geeksforgeeks.org/user/";
@@ -866,7 +866,8 @@ public class CMRITLeaderboard2026 {
                 connection = websiteUrl.toURL().openConnection();
                 o = (HttpURLConnection) connection;
                 o.setRequestMethod("GET");
-                if (o.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND || o.getResponseCode() == HttpURLConnection.HTTP_BAD_REQUEST) {
+                if(o.getResponseCode() == 500 ) continue;
+                else if (o.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND || o.getResponseCode() == HttpURLConnection.HTTP_BAD_REQUEST) {
                     throw new RuntimeException();
                 }
                 inputStream = o.getInputStream();
@@ -877,9 +878,15 @@ public class CMRITLeaderboard2026 {
                         jsonContent.append(line);
                     }
                     JSONObject jsonObject = new JSONObject(jsonContent.toString());
-                    int codechefRating;
+                    int codechefRating = 0;
                     try {
-                        codechefRating = jsonObject.getInt("currentRating");
+                        Thread.sleep(9000);
+                        try {
+                        codechefRating = jsonObject.getInt("currentRating"); 
+                        } catch(Exception e) {
+                            Thread.sleep(9900);
+                            codechefRating = jsonObject.getInt("currentRating"); 
+                        }
 
                         // update the user object with the codechef rating
                         user.setCodechefRating(codechefRating);
@@ -896,7 +903,7 @@ public class CMRITLeaderboard2026 {
                     throw new RuntimeException(e);
                 }
 
-            } catch (URISyntaxException | IOException e) {
+            } catch (Exception e) {
                 throw new RuntimeException(e);
             }
 
