@@ -182,6 +182,7 @@ def process_codeforces(participants):
     # Iterate through the list of participants and check if their Codeforces handle exists
     for participant in tqdm(participants, desc="Processing Codeforces Handles", unit="participant"):
         # Check if the Codeforces handle is not '#N/A'
+        logging.debug(f"Checking Codeforces URL : {codeforces_url_exists}, Response URL: {response_url}")
         if participant.codeforces_handle != '#N/A':
             # Log the checking of Codeforces URL for the current participant
             logging.debug(f"Checking Codeforces URL for participant {participant.handle}")
