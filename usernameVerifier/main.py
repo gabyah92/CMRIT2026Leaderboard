@@ -89,8 +89,13 @@ def check_url_exists(url):
         except requests.exceptions.RequestException:
             return False, "Exception"
     header = {
-        "User-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
-                      "Chrome/121.0.0.0 Safari/537.36"
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Connection": "keep-alive",
+        "Upgrade-Insecure-Requests": "1",
+        "TE": "Trailers"
     }
     # if url is hackerrank
     if "https://www.hackerrank.com/" in url:
@@ -141,31 +146,47 @@ def process_geeksforgeeks(participants):
     # Configure logging
     logging.basicConfig(filename='geeksforgeeks_debug.log', level=logging.DEBUG)
 
+    # Initialize variables to store the last user's status and handle
+    last_user_status = None
+    last_user_handle = None
+
     # Iterate through each participant
-    for participant in tqdm(participants, desc="Processing GeeksForGeeks Handles", unit="participant"):
-        # Check if GeeksForGeeks handle is valid
-        if participant.geeksforgeeks_handle != '#N/A':
-            logging.debug(f"Checking GeeksForGeeks URL for participant {participant.handle}")
+    with tqdm(participants, desc="Processing GeeksForGeeks Handles", unit="participant") as pbar:
+        for participant in pbar:
+            # Check if GeeksForGeeks handle is valid
+            if participant.geeksforgeeks_handle != '#N/A':
+                logging.debug(f"Checking GeeksForGeeks URL for participant {participant.handle}")
 
-            # Check if the GeeksForGeeks URL exists
-            geeksforgeeks_url_exists, response_url = check_url_exists(
-                "https://auth.geeksforgeeks.org/user/" + participant.geeksforgeeks_handle)
-            logging.debug(f"GeeksForGeeks URL exists: {geeksforgeeks_url_exists}, Response URL: {response_url}")
-
-            # Retry if the GeeksForGeeks URL does not exist
-            if not geeksforgeeks_url_exists and participant.geeksforgeeks_handle != '#N/A':
-                logging.debug(f"Retrying GeeksForGeeks URL check for participant {participant.handle}")
+                # Check if the GeeksForGeeks URL exists
                 geeksforgeeks_url_exists, response_url = check_url_exists(
                     "https://auth.geeksforgeeks.org/user/" + participant.geeksforgeeks_handle)
-                logging.debug(f"GeeksForGeeks URL retry: {geeksforgeeks_url_exists}, Response URL: {response_url}")
+                logging.debug(f"GeeksForGeeks URL exists: {geeksforgeeks_url_exists}, Response URL: {response_url}")
 
-            # Write participant data to file
-            with open('geeksforgeeks_handles.txt', 'a') as file:
-                file.write(f"{participant.handle}, {participant.geeksforgeeks_handle}, {geeksforgeeks_url_exists}\n")
-            logging.debug(
-                f"Data written to file for participant {participant.handle}: {participant.geeksforgeeks_handle},"
-                f" {geeksforgeeks_url_exists}")
-            logging.debug("---------------------------------------------------")
+                # Retry if the GeeksForGeeks URL does not exist
+                if not geeksforgeeks_url_exists and participant.geeksforgeeks_handle != '#N/A':
+                    logging.debug(f"Retrying GeeksForGeeks URL check for participant {participant.handle}")
+                    geeksforgeeks_url_exists, response_url = check_url_exists(
+                        "https://auth.geeksforgeeks.org/user/" + participant.geeksforgeeks_handle)
+                    logging.debug(f"GeeksForGeeks URL retry: {geeksforgeeks_url_exists}, Response URL: {response_url}")
+
+                # Write participant data to file
+                with open('geeksforgeeks_handles.txt', 'a') as file:
+                    file.write(f"{participant.handle}, {participant.geeksforgeeks_handle}, {geeksforgeeks_url_exists}\n")
+                logging.debug(
+                    f"Data written to file for participant {participant.handle}: {participant.geeksforgeeks_handle},"
+                    f" {geeksforgeeks_url_exists}")
+                logging.debug("---------------------------------------------------")
+
+                # Update the last user's status and handle
+                last_user_status = geeksforgeeks_url_exists
+                last_user_handle = participant.geeksforgeeks_handle
+
+            # Display the last user's status alongside their username within the progress bar
+            if last_user_handle is not None:
+                pbar.set_postfix({"Last User": last_user_handle, "Status": last_user_status})
+
+            pbar.update(1)
+
     # Shutdown logging
     logging.shutdown()
 
@@ -180,32 +201,48 @@ def process_codeforces(participants):
     Returns:
     None
     """
+    # Initialize variables to store the last user's status and handle
+    last_user_status = None
+    last_user_handle = None
+
     # Iterate through the list of participants and check if their Codeforces handle exists
-    for participant in tqdm(participants, desc="Processing Codeforces Handles", unit="participant"):
-        # Check if the Codeforces handle is not '#N/A'
-        
-        if participant.codeforces_handle != '#N/A':
-            # Log the checking of Codeforces URL for the current participant
-            logging.debug(f"Checking Codeforces URL for participant {participant.handle}")
-            # Check if the URL exists and get the response URL
-            codeforces_url_exists, response_url = check_url_exists("https://codeforces.com/profile/" + participant.codeforces_handle)
-
-            # Log the result of the URL existence check
-            logging.debug(f"Codeforces URL exists: {codeforces_url_exists}, Response URL: {response_url}")
-            if not codeforces_url_exists and participant.codeforces_handle != '#N/A':
-                # Log the retry of Codeforces URL check for the current participant
-                logging.debug(f"Retrying Codeforces URL check for participant {participant.handle}")
-                # Retry the URL existence check and get the response URL
+    with tqdm(participants, desc="Processing Codeforces Handles", unit="participant") as pbar:
+        for participant in pbar:
+            # Check if the Codeforces handle is not '#N/A'
+            
+            if participant.codeforces_handle != '#N/A':
+                # Log the checking of Codeforces URL for the current participant
+                logging.debug(f"Checking Codeforces URL for participant {participant.handle}")
+                # Check if the URL exists and get the response URL
                 codeforces_url_exists, response_url = check_url_exists("https://codeforces.com/profile/" + participant.codeforces_handle)
-                logging.debug(f"Codeforces URL retry: {codeforces_url_exists}, Response URL: {response_url}")
 
-            # Write the participant's handle, Codeforces handle, and URL existence to a file
-            with open('codeforces_handles.txt', 'a') as file:
-                file.write(f"{participant.handle}, {participant.codeforces_handle}, {codeforces_url_exists}\n")
+                # Log the result of the URL existence check
+                logging.debug(f"Codeforces URL exists: {codeforces_url_exists}, Response URL: {response_url}")
+                if not codeforces_url_exists and participant.codeforces_handle != '#N/A':
+                    # Log the retry of Codeforces URL check for the current participant
+                    logging.debug(f"Retrying Codeforces URL check for participant {participant.handle}")
+                    # Retry the URL existence check and get the response URL
+                    codeforces_url_exists, response_url = check_url_exists("https://codeforces.com/profile/" + participant.codeforces_handle)
+                    logging.debug(f"Codeforces URL retry: {codeforces_url_exists}, Response URL: {response_url}")
 
-            # Log the data written to the file for the current participant
-            logging.debug(f"Data written to file for participant {participant.handle}: {participant.codeforces_handle}, {codeforces_url_exists}")
-            logging.debug("---------------------------------------------------")
+                # Write the participant's handle, Codeforces handle, and URL existence to a file
+                with open('codeforces_handles.txt', 'a') as file:
+                    file.write(f"{participant.handle}, {participant.codeforces_handle}, {codeforces_url_exists}\n")
+
+                # Log the data written to the file for the current participant
+                logging.debug(f"Data written to file for participant {participant.handle}: {participant.codeforces_handle}, {codeforces_url_exists}")
+                logging.debug("---------------------------------------------------")
+
+                # Update the last user's status and handle
+                last_user_status = codeforces_url_exists
+                last_user_handle = participant.codeforces_handle
+
+            # Display the last user's status alongside their username within the progress bar
+            if last_user_handle is not None:
+                pbar.set_postfix({"Last User": last_user_handle, "Status": last_user_status})
+
+            pbar.update(1)
+
     # Shutdown the logging system to release resources
     logging.shutdown()
 
@@ -322,29 +359,45 @@ def process_codechef(participants):
     None
     """
     logging.basicConfig(filename='codechef_debug.log', level=logging.DEBUG)
-    for participant in tqdm(participants, desc="Processing CodeChef Handles", unit="participant"):
-        # Check CodeChef URL for each participant
-        logging.debug(f"Checking CodeChef URL for participant {participant.handle}")
 
-        if participant.codechef_handle != '#N/A':
-            # Check if CodeChef URL exists
-            #codechef_url_exists, response_url = check_url_exists(
-            #    "https://www.codechef.com/users/" + participant.codechef_handle)
-            #logging.debug(f"CodeChef URL exists: {codechef_url_exists}, Response URL: {response_url}")
+    # Initialize variables to store the last user's status and handle
+    last_user_status = None
+    last_user_handle = None
 
-            #if not codechef_url_exists and participant.codechef_handle != '#N/A':
-            #    # Retry checking CodeChef URL
-            #    logging.debug(f"Retrying CodeChef URL check for participant {participant.handle}")
-            #    codechef_url_exists, response_url = check_url_exists(
-            #        "https://www.codechef.com/users/" + participant.codechef_handle)
-            #    logging.debug(f"CodeChef URL retry: {codechef_url_exists}, Response URL: {response_url}")
+    with tqdm(total=len(participants), desc="Processing CodeChef Handles", unit="participant") as pbar:
+        for participant in participants:
+            # Check CodeChef URL for each participant
+            logging.debug(f"Checking CodeChef URL for participant {participant.handle}")
 
-            # Write participant data to file codechef_url_exists
-            with open('codechef_handles.txt', 'a') as file:
-                file.write(f"{participant.handle}, {participant.codechef_handle}, {True}\n")
-            logging.debug(f"Data written to file for participant {participant.handle}: {participant.codechef_handle},"
-                          f" {True}")
-            logging.debug("---------------------------------------------------")
+            if participant.codechef_handle != '#N/A':
+                # Check if CodeChef URL exists
+                codechef_url_exists, response_url = check_url_exists(
+                    "https://www.codechef.com/users/" + participant.codechef_handle)
+                logging.debug(f"CodeChef URL exists: {codechef_url_exists}, Response URL: {response_url}")
+
+                if not codechef_url_exists and participant.codechef_handle != '#N/A':
+                    # Retry checking CodeChef URL
+                    logging.debug(f"Retrying CodeChef URL check for participant {participant.handle}")
+                    codechef_url_exists, response_url = check_url_exists(
+                        "https://www.codechef.com/users/" + participant.codechef_handle)
+                    logging.debug(f"CodeChef URL retry: {codechef_url_exists}, Response URL: {response_url}")
+
+                # Write participant data to file codechef_url_exists
+                with open('codechef_handles.txt', 'a') as file:
+                    file.write(f"{participant.handle}, {participant.codechef_handle}, {True}\n")
+                logging.debug(f"Data written to file for participant {participant.handle}: {participant.codechef_handle},"
+                            f" {codechef_url_exists}")
+                logging.debug("---------------------------------------------------")
+
+                # Update the last user's status and handle
+                last_user_status = codechef_url_exists 
+                last_user_handle = participant.codechef_handle
+
+            # Display the last user's status alongside their username within the progress bar
+                if last_user_handle is not None:
+                    pbar.set_postfix({"Last User": last_user_handle, "Status": last_user_status})
+
+                pbar.update(1)
 
     logging.shutdown()
 
@@ -362,20 +415,46 @@ def process_hackerrank(participants):
     # Configure logging
     logging.basicConfig(filename='hackerrank_debug.log', level=logging.DEBUG)
 
+    # Initialize variables to store the last user's status and handle
+    last_user_status = None
+    last_user_handle = None
+
     # Iterate through the participants
-    for participant in tqdm(participants, desc="Processing HackerRank Handles", unit="participant"):
-        # Log the participant's HackerRank URL check
-        logging.debug(f"Checking HackerRank URL for participant {participant.handle}")
+    with tqdm(participants, desc="Processing HackerRank Handles", unit="participant") as pbar:
+        for participant in pbar:
+            # Log the participant's HackerRank URL check
+            logging.debug(f"Checking HackerRank URL for participant {participant.handle}")
 
-        # Check if the HackerRank URL exists
-        if participant.hackerrank_handle != '#N/A': 
+            # Check if the HackerRank URL exists
+            if participant.hackerrank_handle != '#N/A': 
 
-            # Write data to file
-            with open('hackerrank_handles.txt', 'a') as file:
-                file.write(f"{participant.handle}, {participant.hackerrank_handle}, {True}\n")
-            logging.debug(f"Data written to file for participant {participant.handle}: {participant.hackerrank_handle},"
-                          f" {True}")
-            logging.debug("---------------------------------------------------")
+                hackerrank_url_exists, response_url = check_url_exists(
+                    "https://www.hackerrank.com/profile/" + participant.hackerrank_handle)
+                logging.debug(f"HackerRank URL exists: {hackerrank_url_exists}, Response URL: {response_url}")
+
+                # Retry checking the HackerRank URL
+                if not hackerrank_url_exists and participant.hackerrank_handle != '#N/A':
+                    logging.debug(f"Retrying HackerRank URL check for participant {participant.handle}")
+                    hackerrank_url_exists, response_url = check_url_exists(
+                        "https://www.hackerrank.com/profile/" + participant.hackerrank_handle)
+                    logging.debug(f"HackerRank URL retry: {hackerrank_url_exists}, Response URL: {response_url}")
+
+                # Write data to file
+                with open('hackerrank_handles.txt', 'a') as file:
+                    file.write(f"{participant.handle}, {participant.hackerrank_handle}, {True}\n")
+                logging.debug(f"Data written to file for participant {participant.handle}: {participant.hackerrank_handle},"
+                            f" {hackerrank_url_exists}")
+                logging.debug("---------------------------------------------------")
+
+                # Update the last user's status and handle
+                last_user_status = hackerrank_url_exists
+                last_user_handle = participant.hackerrank_handle
+
+            # Display the last user's status alongside their username within the progress bar
+            if last_user_handle is not None:
+                pbar.set_postfix({"Last User": last_user_handle, "Status": last_user_status})
+
+            pbar.update(1)
 
     # Shutdown logging
     logging.shutdown()
