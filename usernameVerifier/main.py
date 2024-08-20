@@ -116,7 +116,7 @@ def check_url_exists(url):
             # https://auth.geeksforgeeks.org/?to=https://auth.geeksforgeeks.org/profile.php codechef redirect is
             # found by checking if final url is https://www.codechef.com/ Hackerrank and Leetcode return 404 error if
             # handle does not exist
-            logging.debug(f "Checking : {response.url}")
+            logging.debug(f"Checking : {response.url}")
             if (response.url == "https://codeforces.com/" or response.url == ("https://auth.geeksforgeeks.org/?to=https"
                                                                               "://auth.geeksforgeeks.org/profile.php")
                     or response.url == "https://www.codechef.com/"):
