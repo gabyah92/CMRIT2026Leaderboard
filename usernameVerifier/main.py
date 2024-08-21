@@ -381,7 +381,7 @@ def process_codeforces(participants):
         =======================================================
         """
         print(current_batch_message)
-        
+
         logging.debug(f"Processing batch {index} of {len(batches)}")
 
         while True:
@@ -421,8 +421,11 @@ def process_codeforces(participants):
     
     # Write valid handles to file
     with open('codeforces_handles.txt', 'a') as file:
-        for handle in all_valid_handles:
-            file.write(f"{handle}, {True}\n")
+        for participant in participants:
+            if participant.codeforces_handle in all_valid_handles:
+                file.write(f"{participant.handle}, {participant.codeforces_handle}, {True}\n")
+            else:
+                file.write(f"{participant.handle}, {participant.codeforces_handle}, {False}\n")
     
     # Logging and printing final status
     if all_batches_successful:
@@ -446,6 +449,58 @@ def process_codeforces(participants):
     
     logging.shutdown()
 
+def process_codechef(participants):
+    """
+    Process the CodeChef handles for the given participants and log the progress.
+
+    Args:
+    participants (list): List of Participant objects.
+
+    Returns:
+    None
+    """
+    logging.basicConfig(filename='codechef_debug.log', level=logging.DEBUG)
+
+    # Initialize variables to store the last user's status and handle
+    last_user_status = None
+    last_user_handle = None
+
+    with tqdm(total=len(participants), desc="Processing CodeChef Handles", unit="participant") as pbar:
+        for participant in participants:
+            # Check CodeChef URL for each participant
+            logging.debug(f"Checking CodeChef URL for participant {participant.handle}")
+
+            if participant.codechef_handle != '#N/A':
+                # Check if CodeChef URL exists
+                codechef_url_exists, response_url = check_url_exists(
+                    "https://www.codechef.com/users/" + participant.codechef_handle)
+                logging.debug(f"CodeChef URL exists: {codechef_url_exists}, Response URL: {response_url}")
+
+                if not codechef_url_exists and participant.codechef_handle != '#N/A':
+                    # Retry checking CodeChef URL
+                    logging.debug(f"Retrying CodeChef URL check for participant {participant.handle}")
+                    codechef_url_exists, response_url = check_url_exists(
+                        "https://www.codechef.com/users/" + participant.codechef_handle)
+                    logging.debug(f"CodeChef URL retry: {codechef_url_exists}, Response URL: {response_url}")
+
+                # Write participant data to file codechef_url_exists
+                with open('codechef_handles.txt', 'a') as file:
+                    file.write(f"{participant.handle}, {participant.codechef_handle}, {True}\n")
+                logging.debug(f"Data written to file for participant {participant.handle}: {participant.codechef_handle},"
+                            f" {codechef_url_exists}")
+                logging.debug("---------------------------------------------------")
+
+                # Update the last user's status and handle
+                last_user_status = codechef_url_exists 
+                last_user_handle = participant.codechef_handle
+
+            # Display the last user's status alongside their username within the progress bar
+                if last_user_handle is not None:
+                    pbar.set_postfix({"Last User": last_user_handle, "Status": last_user_status})
+
+                pbar.update(1)
+
+    logging.shutdown()
 
 def process_hackerrank(participants):
     """
