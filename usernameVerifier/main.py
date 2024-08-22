@@ -348,6 +348,107 @@ def process_leetcode(participants):
             raise RuntimeError(f"Error processing LeetCode handle for {handle}: {e}")
             
 
+# Function to check if Codeforces users exist
+def check_codeforces_users(handles):
+    url = "https://codeforces.com/api/user.info"
+    response = requests.get(url, params={'handles': ';'.join(handles)})
+    print(response.json())
+    return response.json()
+
+# Function to process Codeforces handles
+def process_codeforces(participants):
+    logging.basicConfig(filename='codeforces_debug.log', level=logging.DEBUG)
+
+    # Load Codeforces handles from participants
+    handles = {participant.codeforces_handle.replace(" ", "") for participant in participants if participant.codeforces_handle != '#N/A' and "@" not in participant.codeforces_handle}
+    
+    # Initialize variables
+    remaining_handles = set(handles)
+    all_valid_handles = set()
+    all_batches_successful = True
+
+    # Split handles into batches of 300 and process them
+    batches = [list(remaining_handles)[i:i + 300] for i in range(0, len(remaining_handles), 300)]
+    logging.debug(f"Total handles: {len(handles)}, Total batches: {len(batches)}")
+    for index, batch in enumerate(batches, start=1):
+        logging.info(f"The content of the batch {index} is {batch}")
+
+    for index, batch in enumerate(batches, start=1):
+        current_batch_message = f"""
+
+        =======================================================
+        PROCESSING BATCH {index} OF {len(batches)}
+        =======================================================
+        """
+        print(current_batch_message)
+
+        logging.debug(f"Processing batch {index} of {len(batches)}")
+
+        while True:
+            # Fetch user information
+            response_json = check_codeforces_users(batch)
+            if response_json["status"] == "OK":
+                users = response_json["result"]
+                
+                # Collect valid handles
+                valid_handles = {user["handle"] for user in users}
+                all_valid_handles.update(valid_handles)
+                
+                # Find and remove non-existent handles
+                handles_to_remove = set(batch) - valid_handles
+                remaining_handles -= handles_to_remove
+                
+                # Log removed handles
+                if handles_to_remove:
+                    logging.debug(f"Handles not found: {handles_to_remove}")
+                
+                break
+
+            elif response_json["status"] == "FAILED" and response_json["comment"].startswith("handles:"):
+                # Find and remove non-existent handle
+                # Format: "handles: User with handle <username> not found"
+                handles_to_remove = {re.search(r"User with handle (.+) not found", response_json["comment"]).group(1)}
+                remaining_handles -= handles_to_remove
+                batch.remove(handles_to_remove.pop())
+                logging.warning(f"Handles not found: {handles_to_remove}")
+
+            else:
+                logging.error(f"API Error: {response_json.get('comment', 'Unknown error')}")
+                all_batches_successful = False
+                break
+            
+            logging.debug(f"Remaining handles: {remaining_handles}")
+    
+    # Write valid handles to file
+    with open('codeforces_handles.txt', 'a') as file:
+        for participant in participants:
+            if participant.codeforces_handle in all_valid_handles:
+                file.write(f"{participant.handle}, {participant.codeforces_handle}, {True}\n")
+            else:
+                file.write(f"{participant.handle}, {participant.codeforces_handle}, {False}\n")
+    
+    # Logging and printing final status
+    if all_batches_successful:
+        success_message = """
+        
+        =======================================================
+        ALL BATCHES PROCESSED SUCCESSFULLY!
+        =======================================================
+        """
+        print(success_message)
+        logging.info(success_message.strip())
+    else:
+        failure_message = """
+        
+        =======================================================
+        SOME BATCHES FAILED TO PROCESS. CHECK LOG FOR DETAILS.
+        =======================================================
+        """
+        print(failure_message)
+        logging.error(failure_message.strip())
+    
+    logging.shutdown()
+
 def process_codechef(participants):
     """
     Process the CodeChef handles for the given participants and log the progress.
@@ -400,7 +501,6 @@ def process_codechef(participants):
                 pbar.update(1)
 
     logging.shutdown()
-
 
 def process_hackerrank(participants):
     """
