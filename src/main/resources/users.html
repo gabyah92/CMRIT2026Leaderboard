@@ -38,6 +38,32 @@
             }
         }
     </style>
+    <style>
+        body {
+            -webkit-text-size-adjust: 100%;
+            text-size-adjust: 100%;
+        }
+        #nav-toggle:checked ~ #mobile-menu {
+            display: block;
+        }
+        #nav-toggle:checked ~ label[for="nav-toggle"] .open {
+            display: none;
+        }
+        #nav-toggle:checked ~ label[for="nav-toggle"] .close {
+            display: block;
+        }
+        #nav-toggle:not(:checked) ~ label[for="nav-toggle"] .open {
+            display: block;
+        }
+        #nav-toggle:not(:checked) ~ label[for="nav-toggle"] .close {
+            display: none;
+        }
+        @media (min-width: 768px) {
+            #mobile-menu {
+                display: flex !important;
+            }
+        }
+    </style>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;700&amp;display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-theme-alpine.css">
@@ -48,26 +74,30 @@
 </head>
 
 <body class="bg-black text-white font-sans antialiased overflow-auto">
-    <header class="bg-opacity-60 bg-black p-4 fixed w-full top-0 left-0 shadow-md z-50 flex items-center">
+    <header class="bg-opacity-60 bg-black p-4 fixed w-full top-0 left-0 shadow-md z-50">
         <div class="container mx-auto flex items-center justify-between">
             <!-- Logo -->
             <img src="https://github.com/gabyah92/CMRIT2026Leaderboard/blob/main/lib/logonobg.png?raw=true" alt="Logo" class="h-10 w-auto">
     
-            <!-- Title and Navigation -->
-            <div class="flex-grow hidden md:flex items-center justify-between">
-                <h1 class="text-xl font-bold text-white">CMRIT 2026 Leaderboard</h1>
-                <nav class="flex space-x-4">
-                    <a href="index.html" class="px-4 py-2 rounded-lg text-custom-orange hover:text-yellow-300 transition-colors duration-300">Leaderboard</a>
-                    <a href="users.html" class="px-4 py-2 rounded-lg text-custom-orange hover:text-yellow-300 transition-colors duration-300">User Handles</a>
-                </nav>
-            </div>
+            <!-- Title -->
+            <h1 class="text-xl font-bold text-white md:mr-auto">CMRIT 2026 Leaderboard</h1>
     
-            <!-- Menu Toggle Button -->
-            <button id="menuToggle" class="md:hidden text-custom-orange focus:outline-none" aria-label="Toggle menu">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
-                </svg>
-            </button>
+            <!-- Navigation -->
+            <nav>
+                <input type="checkbox" id="nav-toggle" class="hidden">
+                <label for="nav-toggle" class="md:hidden text-custom-orange cursor-pointer">
+                    <svg class="w-6 h-6 open" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                    </svg>
+                    <svg class="w-6 h-6 close" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </label>
+                <ul id="mobile-menu" class="hidden md:flex md:space-x-4 absolute md:relative top-full left-0 right-0 bg-black md:bg-transparent p-4 md:p-0">
+                    <li><a href="index.html" class="block py-2 px-4 text-custom-orange hover:text-yellow-300 transition-colors duration-300">Leaderboard</a></li>
+                    <li><a href="users.html" class="block py-2 px-4 text-custom-orange hover:text-yellow-300 transition-colors duration-300">User Handles</a></li>
+                </ul>
+            </nav>
         </div>
     </header>
 
@@ -105,48 +135,7 @@
             </div>
         </div>
     </main>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const menuToggle = document.getElementById('menuToggle');
-            const menuClose = document.getElementById('menuClose');
-            const mobileMenu = document.getElementById('mobileMenu');
-            const menuItems = mobileMenu.querySelectorAll('a');
-
-            function toggleMenu() {
-                const isOpen = mobileMenu.classList.contains('opacity-100');
-
-                mobileMenu.classList.toggle('opacity-0', isOpen);
-                mobileMenu.classList.toggle('opacity-100', !isOpen);
-                mobileMenu.classList.toggle('pointer-events-none', isOpen);
-
-                // Toggle aria-expanded attribute
-                menuToggle.setAttribute('aria-expanded', !isOpen);
-
-                // Toggle visibility of menu toggle button
-                menuToggle.classList.toggle('invisible', !isOpen);
-
-                // Prevent body scrolling when menu is open
-                document.body.style.overflow = isOpen ? '' : 'hidden';
-            }
-
-            menuToggle.addEventListener('click', toggleMenu);
-            menuClose.addEventListener('click', toggleMenu);
-
-            // Close menu when clicking on a menu item
-            menuItems.forEach(item => {
-                item.addEventListener('click', toggleMenu);
-            });
-
-            // Close menu when pressing Escape key
-            document.addEventListener('keydown', (event) => {
-                if (event.key === 'Escape' && mobileMenu.classList.contains('opacity-100')) {
-                    toggleMenu();
-                }
-            });
-        });
-    </script>
-
+    
     <script src="users.js"></script>
 </body>
 
