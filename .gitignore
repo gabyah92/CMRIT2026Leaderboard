@@ -52,5 +52,9 @@ gfg_ratings.txt
 hackerrank_ratings.txt
 leetcode_ratings.txt
 foo.txt
+src/main/resources/CMRIT2026Leaderboard.csv
 
 .idea/
+
+# Python env
+venv/

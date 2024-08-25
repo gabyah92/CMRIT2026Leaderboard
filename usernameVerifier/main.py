@@ -191,63 +191,6 @@ def process_geeksforgeeks(participants):
     logging.shutdown()
 
 
-def process_codeforces(participants):
-    """
-    Process Codeforces handles for each participant and log the progress.
-
-    Args:
-    participants (list): List of participant objects
-
-    Returns:
-    None
-    """
-    # Initialize variables to store the last user's status and handle
-    last_user_status = None
-    last_user_handle = None
-
-    # Iterate through the list of participants and check if their Codeforces handle exists
-    with tqdm(participants, desc="Processing Codeforces Handles", unit="participant") as pbar:
-        for participant in pbar:
-            # Check if the Codeforces handle is not '#N/A'
-            
-            if participant.codeforces_handle != '#N/A':
-                # Log the checking of Codeforces URL for the current participant
-                logging.debug(f"Checking Codeforces URL for participant {participant.handle}")
-                # Check if the URL exists and get the response URL
-                codeforces_url_exists, response_url = check_url_exists("https://codeforces.com/profile/" + participant.codeforces_handle)
-
-                # Log the result of the URL existence check
-                logging.debug(f"Codeforces URL exists: {codeforces_url_exists}, Response URL: {response_url}")
-                if not codeforces_url_exists and participant.codeforces_handle != '#N/A':
-                    # Log the retry of Codeforces URL check for the current participant
-                    logging.debug(f"Retrying Codeforces URL check for participant {participant.handle}")
-                    # Retry the URL existence check and get the response URL
-                    codeforces_url_exists, response_url = check_url_exists("https://codeforces.com/profile/" + participant.codeforces_handle)
-                    logging.debug(f"Codeforces URL retry: {codeforces_url_exists}, Response URL: {response_url}")
-
-                # Write the participant's handle, Codeforces handle, and URL existence to a file
-                with open('codeforces_handles.txt', 'a') as file:
-                    file.write(f"{participant.handle}, {participant.codeforces_handle}, {codeforces_url_exists}\n")
-
-                # Log the data written to the file for the current participant
-                logging.debug(f"Data written to file for participant {participant.handle}: {participant.codeforces_handle}, {codeforces_url_exists}")
-                logging.debug("---------------------------------------------------")
-
-                # Update the last user's status and handle
-                last_user_status = codeforces_url_exists
-                last_user_handle = participant.codeforces_handle
-
-            # Display the last user's status alongside their username within the progress bar
-            if last_user_handle is not None:
-                pbar.set_postfix({"Last User": last_user_handle, "Status": last_user_status})
-
-            pbar.update(1)
-
-    # Shutdown the logging system to release resources
-    logging.shutdown()
-
-
-
 def process_leetcode(participants):
     """
     Process the LeetCode handles of participants.
@@ -422,6 +365,7 @@ def process_codeforces(participants):
     # Write valid handles to file
     with open('codeforces_handles.txt', 'a') as file:
         for participant in participants:
+            participant.codeforces_handle = participant.codeforces_handle.replace(" ", "")
             if participant.codeforces_handle in all_valid_handles:
                 file.write(f"{participant.handle}, {participant.codeforces_handle}, {True}\n")
             else:
