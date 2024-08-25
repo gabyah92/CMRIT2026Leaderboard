@@ -111,14 +111,49 @@ function populateGrid(workbook) {
   gridApi.setGridOption('rowData', rowData);
 }
 
+const updateDateElement = document.getElementById('updateDate');
+const filePath = 'Leaderboards/CurrentCMRITLeaderboard2026.xlsx';
+const repoOwner = 'gabyah92'; // GitHub username or organization name
+const repoName = 'CMRIT2026Leaderboard'; // GitHub repository name
+
+function formatDate(dateString) {
+  const options = { year: 'numeric', month: 'long', day: 'numeric' };
+  return new Date(dateString).toLocaleDateString(undefined, options);
+}
+
+function updateLastUpdatedDate() {
+  const url = `https://api.github.com/repos/${repoOwner}/${repoName}/commits?path=${encodeURIComponent(filePath)}&page=1&per_page=1`;
+
+  fetch(url)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Failed to fetch commits from GitHub');
+      }
+      return response.json();
+    })
+    .then(data => {
+      if (data.length > 0) {
+        const lastCommitDate = data[0].commit.committer.date;
+        const lastCommitTime = new Date(lastCommitDate).toLocaleTimeString();
+        updateDateElement.textContent = formatDate(lastCommitDate) + ' at ' + lastCommitTime;
+      } else {
+        updateDateElement.textContent = 'No commits found';
+      }
+    })
+    .catch(() => {
+      updateDateElement.textContent = 'Error fetching date';
+    });
+}
+
 function importExcel() {
+  updateLastUpdatedDate();  // Update the date before importing the Excel file
+
   makeRequest(
     'GET',
-    'https://raw.githubusercontent.com/gabyah92/CMRIT2026Leaderboard/main/Leaderboards/CurrentCMRITLeaderboard2026.xlsx',
+    `https://raw.githubusercontent.com/${repoOwner}/${repoName}/main/${filePath}`,
     // success
     function (data) {
       var workbook = convertDataToWorkbook(data);
-
       populateGrid(workbook);
     },
     // error
@@ -127,6 +162,8 @@ function importExcel() {
     }
   );
 }
+
+
 
 // wait for the document to be loaded, otherwise
 // AG Grid will not find the div in the document.
