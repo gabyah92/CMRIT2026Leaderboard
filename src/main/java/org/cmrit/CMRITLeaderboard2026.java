@@ -65,7 +65,7 @@ public class CMRITLeaderboard2026 {
             "geeksforgeeks_url_exists, codeforces_url_exists, leetcode_url_exists, codechef_url_exists, hackerrank_url_exists) " +
             "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-    private static final String CODECHEF_URL = "https://codechef-api-one.vercel.app/";
+    private static final String CODECHEF_URL = "https://code-chef-rating-api.vercel.app/";
     private static final String CODEFORCES_URL = "https://codeforces.com/api/user.info?handles=";
     private static final String LEETCODE_URL = "https://leetcode.com/graphql?query=";
     private static final String GFG_URL = "https://auth.geeksforgeeks.org/user/";
@@ -826,7 +826,7 @@ public class CMRITLeaderboard2026 {
      *
      * @param  resultSet   list of users to scrape
      */
-    private static void scrapeCodechef(ArrayList <User> resultSet) {
+    private static void scrapeCodechef(ArrayList<User> resultSet) {
         // Scraper logic for Codechef
 
         System.out.println("Codechef scraping in progress...");
@@ -837,7 +837,7 @@ public class CMRITLeaderboard2026 {
         HttpURLConnection o;
         InputStream inputStream;
 
-        // create or clear the file for writing
+        // Create or clear the file for writing
         File file = new File("codechef_ratings.txt");
         try {
             FileWriter writer = new FileWriter(file);
@@ -854,7 +854,7 @@ public class CMRITLeaderboard2026 {
             String handle = user.getHandle();
             String codechefHandle = user.getCodechefHandle();
 
-            // remove any spaces from the handle
+            // Remove any spaces from the handle
             codechefHandle = codechefHandle.replace(" ", "");
 
             System.out.println("(" + i + "/" + size + ") Scraping Codechef for " + handle + " (Codechef Handle: " + codechefHandle + ")");
@@ -866,9 +866,11 @@ public class CMRITLeaderboard2026 {
                 connection = websiteUrl.toURL().openConnection();
                 o = (HttpURLConnection) connection;
                 o.setRequestMethod("GET");
-                if(o.getResponseCode() == 500 ) { Thread.sleep(9000); continue; }
-                else if (o.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND || o.getResponseCode() == HttpURLConnection.HTTP_BAD_REQUEST) {
-                    throw new RuntimeException();
+                if (o.getResponseCode() == 500) {
+                    Thread.sleep(9000); // Retry after 9 seconds if server error
+                    continue;
+                } else if (o.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND || o.getResponseCode() == HttpURLConnection.HTTP_BAD_REQUEST) {
+                    throw new RuntimeException("Error response code: " + o.getResponseCode());
                 }
                 inputStream = o.getInputStream();
                 try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
@@ -880,39 +882,37 @@ public class CMRITLeaderboard2026 {
                     JSONObject jsonObject = new JSONObject(jsonContent.toString());
                     int codechefRating = 0;
                     try {
-                        Thread.sleep(9000);
-                        try {
-                        codechefRating = jsonObject.getInt("currentRating"); 
-                        } catch(Exception e) {
-                            Thread.sleep(9900);
-                            codechefRating = jsonObject.getInt("currentRating"); 
-                        }
-
-                        // update the user object with the codechef rating
-                        user.setCodechefRating(codechefRating);
-
-                        System.out.println("Codechef rating for " + codechefHandle + " is: " + codechefRating);
-                        // Write to a text file
-                        FileWriter writer = new FileWriter("codechef_ratings.txt", true);
-                        writer.write(handle + "," + codechefHandle + "," + codechefRating + "\n");
-                        writer.close();
+                        codechefRating = jsonObject.getInt("currentRating");
                     } catch (JSONException e) {
                         System.err.println("Error fetching codechef rating for " + codechefHandle + ": " + e.getMessage());
+                        continue; // Skip this iteration if parsing fails
                     }
-                } catch (JSONException e) {
-                    throw new RuntimeException(e);
-                }
+                    // Update the user object with the codechef rating
+                    user.setCodechefRating(codechefRating);
 
+                    System.out.println("Codechef rating for " + codechefHandle + " is: " + codechefRating);
+                    // Write to a text file
+                    FileWriter writer = new FileWriter("codechef_ratings.txt", true);
+                    writer.write(handle + "," + codechefHandle + "," + codechefRating + "\n");
+                    writer.close();
+                }
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                System.err.println("Error processing user " + codechefHandle + ": " + e.getMessage());
             }
 
+            // Add a delay between requests
+            try {
+                Thread.sleep(500); // 500 milliseconds = 0.5 seconds
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                System.err.println("Thread interrupted: " + e.getMessage());
+            }
         }
 
         System.out.println("Codechef scraping completed.");
         System.out.println("========================================");
-
     }
+
 
     private static final int MAX_HANDLES_PER_REQUEST = 380;
 
@@ -1797,4 +1797,3 @@ class User {
         this.percentile = percentile;
     }
 }
-
