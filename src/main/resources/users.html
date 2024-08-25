@@ -3,59 +3,151 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=0">
     <link rel="shortcut icon" type="image/x-icon"
-          href="https://github.com/gabyah92/CMRIT2026Leaderboard/blob/main/lib/logonobg.png?raw=true">
+        href="https://github.com/gabyah92/CMRIT2026Leaderboard/blob/main/lib/logonobg.png?raw=true">
     <title>CMRIT 2026 Leaderboard</title>
 
-    <meta charset="UTF-8">
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;700&amp;display=swap"
-          rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
-          integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
-    <style>
-        html,
-        body {
-            height: 100%;
-            width: 100%;
-            margin: 0;
-            box-sizing: border-box;
-            -webkit-overflow-scrolling: touch;
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'custom-blue': '#356a9b',
+                        'custom-orange': '#FFA500',
+                        'custom-dark': '#4d2731',
+                    },
+                    backgroundImage: {
+                        'glass': 'rgba(255, 255, 255, 0.1)',
+                    },
+                    backdropBlur: {
+                        'lg': '10px',
+                    }
+                }
+            }
         }
-
-        html {
-            position: absolute;
-            top: 0;
-            left: 0;
-            padding: 0;
-            overflow: auto;
-        }
-
-        body {
-            padding: 25px;
-            overflow: auto;
-            background-color: black;
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .glass {
+                background: rgba(255, 255, 255, 0.1);
+                backdrop-filter: blur(10px);
+                border-radius: 0.5rem;
+            }
         }
     </style>
-    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;700&amp;display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-theme-alpine.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.1/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx-style@0.8.13/dist/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.0/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.js"></script>
 </head>
 
-<body>
-<nav class="nav nav-pills flex-column flex-sm-row">
-    <a class="flex-sm-fill text-sm-center nav-link" href="index.html">Leaderboard</a>
-    <a class="flex-sm-fill text-sm-center nav-link active" aria-current="page" href="users.html">UserHandles</a>
-</nav>
-<div class="example-wrapper">
-    <div id="myGrid" class="ag-theme-quartz-dark"></div>
-</div>
-<script>var __basePath = './';</script>
-<script src="https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.js"></script>
-<script src="users.js"></script>
-</body>
+<body class="bg-black text-white font-sans antialiased overflow-auto">
+    <header class="bg-opacity-60 bg-black p-4 fixed w-full top-0 left-0 shadow-md z-50 flex items-center">
+        <div class="container mx-auto flex items-center justify-between">
+            <!-- Logo -->
+            <img src="https://github.com/gabyah92/CMRIT2026Leaderboard/blob/main/lib/logonobg.png?raw=true" alt="Logo" class="h-10 w-auto">
+    
+            <!-- Title and Navigation -->
+            <div class="flex-grow hidden md:flex items-center justify-between">
+                <h1 class="text-xl font-bold text-white">CMRIT 2026 Leaderboard</h1>
+                <nav class="flex space-x-4">
+                    <a href="index.html" class="px-4 py-2 rounded-lg text-custom-orange hover:text-yellow-300 transition-colors duration-300">Leaderboard</a>
+                    <a href="users.html" class="px-4 py-2 rounded-lg text-custom-orange hover:text-yellow-300 transition-colors duration-300">User Handles</a>
+                </nav>
+            </div>
+    
+            <!-- Menu Toggle Button -->
+            <button id="menuToggle" class="md:hidden text-custom-orange focus:outline-none" aria-label="Toggle menu">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                </svg>
+            </button>
+        </div>
+    </header>
 
-<link rel="stylesheet" href="styles.css">
+    <!-- Mobile Menu -->
+    <nav id="mobileMenu"
+        class="fixed inset-0 bg-black bg-opacity-90 text-white md:hidden z-40 opacity-0 pointer-events-none transition-opacity duration-300 ease-in-out">
+        <div class="flex flex-col h-full">
+            <div class="flex justify-end p-4">
+                <button id="menuClose" class="text-custom-orange" aria-label="Close menu">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
+                    </svg>
+                </button>
+            </div>
+            <div class="flex flex-col items-center justify-center flex-grow">
+                <a href="index.html" class="py-2 px-4 text-custom-orange text-lg hover:text-yellow-300">Leaderboard</a>
+                <a href="users.html" class="py-2 px-4 text-custom-orange text-lg hover:text-yellow-300">User Handles</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="pt-20 pb-8 min-h-screen">
+        <div class="container mx-auto p-4 glass shadow-lg">
+            <!-- Ensure #myGrid occupies full width and height -->
+            <div id="myGrid" class="ag-theme-alpine-dark w-full h-[calc(100vh-8rem)]"></div>    
+            <div class="text-center mt-4">
+                <h1 class="text-lg font-semibold mb-2">Excel Sheet: <a
+                        href="https://github.com/gabyah92/CMRIT2026Leaderboard/raw/main/Leaderboards/CurrentCMRITLeaderboard2026.xlsx"
+                        class="text-blue-400 hover:underline">Download</a></h1>
+                <h1 class="text-lg font-semibold">App By: <a href="https://www.instagram.com/gabyah92"
+                        class="text-blue-400 hover:underline">gabyah92</a> & <a href="https://github.com/dog-broad"
+                        class="text-blue-400 hover:underline">Rushyendra</a></h1>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const menuToggle = document.getElementById('menuToggle');
+            const menuClose = document.getElementById('menuClose');
+            const mobileMenu = document.getElementById('mobileMenu');
+            const menuItems = mobileMenu.querySelectorAll('a');
+
+            function toggleMenu() {
+                const isOpen = mobileMenu.classList.contains('opacity-100');
+
+                mobileMenu.classList.toggle('opacity-0', isOpen);
+                mobileMenu.classList.toggle('opacity-100', !isOpen);
+                mobileMenu.classList.toggle('pointer-events-none', isOpen);
+
+                // Toggle aria-expanded attribute
+                menuToggle.setAttribute('aria-expanded', !isOpen);
+
+                // Toggle visibility of menu toggle button
+                menuToggle.classList.toggle('invisible', !isOpen);
+
+                // Prevent body scrolling when menu is open
+                document.body.style.overflow = isOpen ? '' : 'hidden';
+            }
+
+            menuToggle.addEventListener('click', toggleMenu);
+            menuClose.addEventListener('click', toggleMenu);
+
+            // Close menu when clicking on a menu item
+            menuItems.forEach(item => {
+                item.addEventListener('click', toggleMenu);
+            });
+
+            // Close menu when pressing Escape key
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && mobileMenu.classList.contains('opacity-100')) {
+                    toggleMenu();
+                }
+            });
+        });
+    </script>
+
+    <script src="users.js"></script>
+</body>
 
 </html>
