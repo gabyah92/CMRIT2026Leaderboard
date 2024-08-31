@@ -52,7 +52,7 @@ def scrape_leetcode(true_leetcode):
     options.add_argument("--auto-open-devtools-for-tabs")
 
     # Configure undetected-chromedriver to run in headless mode
-    driver = uc.Chrome(version_main=126, options=options)
+    driver = uc.Chrome(version_main=128, options=options)
 
     driver.get("https://github.com/login")
     time.sleep(5)
