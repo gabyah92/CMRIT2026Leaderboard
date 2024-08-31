@@ -20,6 +20,8 @@ import org.openqa.selenium.firefox.FirefoxOptions;
 import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.sql.*;
 import java.text.DecimalFormat;
 import java.util.*;
@@ -67,6 +69,9 @@ public class CMRITLeaderboard2026 {
 
     private static final String CODECHEF_URL = "https://code-chef-rating-api.vercel.app/";
     private static final String CODEFORCES_URL = "https://codeforces.com/api/user.info?handles=";
+    // Load Codeforces Key and Secret from env variables
+    private static final String API_KEY = System.getenv("CODEFORCES_KEY");
+    private static final String API_SECRET = System.getenv("CODEFORCES_SECRET");
     private static final String LEETCODE_URL = "https://leetcode.com/graphql?query=";
     private static final String GFG_URL = "https://auth.geeksforgeeks.org/user/";
     private static final String GFG_WEEKLY_CONTEST_URL = "https://practiceapi.geeksforgeeks.org/api/latest/events/recurring/gfg-weekly-coding-contest/leaderboard/?leaderboard_type=0&page=";
@@ -923,92 +928,103 @@ public class CMRITLeaderboard2026 {
      * @throws CustomScrapingException  if unable to fetch Codeforces rating after 10 retries
      */
     private static void scrapeCodeforces(ArrayList<User> resultSet) throws CustomScrapingException {
-        // Print a message indicating the start of Codeforces scraping
         System.out.println("Codeforces scraping in progress...");
 
-        // Create or clear the file for writing
         File file = new File("codeforces_ratings.txt");
         try {
             FileWriter writer = new FileWriter(file);
             writer.write(""); // Clearing the file
             writer.close();
         } catch (IOException e) {
-            // Print an error message if there's an issue clearing the file
             System.err.println("Error clearing file: " + e.getMessage());
         }
 
-        // Split the list of users into chunks
         List<List<User>> userChunks = splitUsersIntoChunks(resultSet);
 
-        int counter = 1; // Counter for tracking the progress of scraping
-        int totalUsers = resultSet.size(); // Total number of users to scrape
+        int counter = 1;
+        int totalUsers = resultSet.size();
 
-        // Iterate through user chunks for scraping
         for (List<User> users : userChunks) {
-            int retryCount = 0; // Counter for retry attempts
-            // Retry scraping until successful or until 10 attempts are made
+            int retryCount = 0;
             while (retryCount < 10) {
                 try {
-                    // Create a list of all the Codeforces handles separated by ";"
                     String codeforcesHandles = users.stream()
                             .map(User::getCodeforcesHandle)
                             .map(handle -> handle.replaceAll(" ", ""))
                             .collect(Collectors.joining(";"));
 
-                    // Construct the URL with handles
                     String url = CODEFORCES_URL + codeforcesHandles;
                     url = url.replaceAll("\t", "");
                     System.out.println("Codeforces URL: " + url);
 
-                    // Remove any special characters from the URL
-                    url = url.replaceAll("[^\\x00-\\x7F]", "");
+                    long currentTime = System.currentTimeMillis() / 1000;
+                    String rand = generateRandomString(6);
+                    String apiSig = generateApiSig(rand, "user.info", codeforcesHandles, currentTime, API_SECRET);
 
-                    // Make HTTP request using Jsoup
+                    url += "&apiKey=" + API_KEY + "&time=" + currentTime + "&apiSig=" + rand + apiSig;
+
                     Document doc = Jsoup.connect(url).ignoreContentType(true).method(org.jsoup.Connection.Method.GET).execute().parse();
                     String jsonContent = doc.body().text();
 
-                    // Parse JSON response
                     JSONObject jsonObject = new JSONObject(jsonContent);
                     JSONArray array = jsonObject.getJSONArray("result");
 
-                    // Process JSON data
                     for (int i = 0; i < array.length(); i++) {
                         JSONObject obj = array.getJSONObject(i);
                         String handle = obj.getString("handle");
                         int rating = obj.optInt("rating", 0);
                         System.out.println("(" + counter + "/" + totalUsers + ") " + "Codeforces rating for " + handle + " is: " + rating);
 
-                        // Find user handle with Codeforces handle
                         User user = users.stream()
                                 .filter(u -> u.getCodeforcesHandle().replace(" ", "").equalsIgnoreCase(handle.replace(" ", "")))
                                 .findFirst()
                                 .orElse(null);
                         if (user != null) {
-                            // Update the user object with the Codeforces rating
                             user.setCodeforcesRating(rating);
-                            // Write to a text file
                             FileWriter writer = new FileWriter("codeforces_ratings.txt", true);
                             writer.write(user.getHandle() + "," + handle + "," + rating + "\n");
                             writer.close();
                         }
 
-                        counter++; // Increment the counter for progress tracking
+                        counter++;
                     }
-                    break; // Break out of the retry loop if successful
+                    break;
                 } catch (IOException e) {
-                    retryCount++; // Increment the retry count
+                    retryCount++;
                     System.err.println("Error fetching Codeforces rating. Retrying attempt " + retryCount + ": " + e.getMessage());
-                } catch (JSONException e) {
-                    System.err.println("Error parsing JSON response: " + e.getMessage());
+                } catch (Exception e) {
+                    System.err.println("Error processing request: " + e.getMessage());
                 }
             }
             if (retryCount == 10) {
                 throw new CustomScrapingException("Failed to fetch Codeforces rating after 10 retries.");
             }
         }
-        // Print a message indicating the completion of Codeforces scraping
         System.out.println("Codeforces scraping completed.");
         System.out.println("========================================");
+    }
+
+    private static String generateRandomString(int length) {
+        String chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        StringBuilder sb = new StringBuilder(length);
+        Random random = new Random();
+        for (int i = 0; i < length; i++) {
+            sb.append(chars.charAt(random.nextInt(chars.length())));
+        }
+        return sb.toString();
+    }
+
+    private static String generateApiSig(String rand, String methodName, String handles, long time, String secret) throws NoSuchAlgorithmException {
+        String parameters = "apiKey=" + API_KEY + "&handles=" + handles + "&time=" + time;
+        String toHash = rand + "/" + methodName + "?" + parameters + "#" + secret;
+
+        MessageDigest digest = MessageDigest.getInstance("SHA-512");
+        byte[] hashBytes = digest.digest(toHash.getBytes(StandardCharsets.UTF_8));
+        StringBuilder sb = new StringBuilder();
+        for (byte b : hashBytes) {
+            sb.append(String.format("%02x", b));
+        }
+        return sb.toString();
     }
     // Custom exception for scraping
     private static class CustomScrapingException extends Exception {
