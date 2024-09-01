@@ -42,6 +42,9 @@ jobs:
 
   codeforces:
     runs-on: ubuntu-latest
+    env:
+      CODEFORCES_KEY: ${{ secrets.CODEFORCES_KEY }}
+      CODEFORCES_SECRET: ${{ secrets.CODEFORCES_SECRET }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4.1.1

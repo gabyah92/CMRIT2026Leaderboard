@@ -290,13 +290,51 @@ def process_leetcode(participants):
         except Exception as e:
             raise RuntimeError(f"Error processing LeetCode handle for {handle}: {e}")
             
+# Load API_KEY and API_SECRET from environment variables
+API_KEY = os.getenv('CODEFORCES_API_KEY')
+API_SECRET = os.getenv('CODEFORCES_API_SECRET')
+CODEFORCES_URL = 'https://codeforces.com/api/user.info'
 
 # Function to check if Codeforces users exist
-def check_codeforces_users(handles):
-    url = "https://codeforces.com/api/user.info"
-    response = requests.get(url, params={'handles': ';'.join(handles)})
-    print(response.json())
-    return response.json()
+def generate_random_string(length=6):
+    """Generate a random string of specified length."""
+    chars = string.ascii_letters + string.digits
+    return ''.join(random.choice(chars) for _ in range(length))
+
+def generate_api_signature(rand, method_name, handles, time, secret):
+    """Generate API signature."""
+    parameters = f"apiKey={API_KEY}&handles={handles}&time={time}"
+    to_hash = f"{rand}/{method_name}?{parameters}#{secret}"
+    
+    hash_bytes = hashlib.sha512(to_hash.encode('utf-8')).digest()
+    return ''.join(f"{byte:02x}" for byte in hash_bytes)
+
+def fetch_codeforces_data(handles):
+    """Fetch Codeforces user data using the API."""
+    current_time = int(time.time())
+    rand = generate_random_string()
+    api_sig = generate_api_signature(rand, "user.info", ';'.join(handles), current_time, API_SECRET)
+    
+    # Construct the request URL
+    url = f"{CODEFORCES_URL}?handles={';'.join(handles)}&apiKey={API_KEY}&time={current_time}&apiSig={rand}{api_sig}"
+    
+    retry_count = 0
+    max_retries = 10
+    while retry_count < max_retries:
+        try:
+            response = requests.get(url)
+            response.raise_for_status()
+            
+            # Print and return JSON response
+            json_response = response.json()
+            # Log the response
+            logging.debug(json_response)
+            return json_response
+        except requests.RequestException as e:
+            retry_count += 1
+            print(f"Error fetching Codeforces data. Retrying attempt {retry_count}: {e}")
+    
+    raise Exception("Failed to fetch Codeforces data after multiple retries.")
 
 # Function to process Codeforces handles
 def process_codeforces(participants):
