@@ -226,7 +226,7 @@ def process_leetcode(participants):
     options.add_argument("--auto-open-devtools-for-tabs")
 
     # Configure undetected-chromedriver to run in headless mode
-    driver = uc.Chrome(version_main=128, options=options)
+    driver = uc.Chrome(version_main=12, options=options)
 
     # Login to GitHub
     driver.get("https://github.com/login")
@@ -314,7 +314,7 @@ def process_codeforces(participants):
     batches = [list(remaining_handles)[i:i + 300] for i in range(0, len(remaining_handles), 300)]
     logging.debug(f"Total handles: {len(handles)}, Total batches: {len(batches)}")
     for index, batch in enumerate(batches, start=1):
-        logging.info(f"The content of the batch {index} is {batch}")
+        logging.info(f"The content of batch {index} is {batch}")
 
     for index, batch in enumerate(batches, start=1):
         current_batch_message = f"""
@@ -328,39 +328,59 @@ def process_codeforces(participants):
         logging.debug(f"Processing batch {index} of {len(batches)}")
 
         while True:
-            # Fetch user information
-            response_json = check_codeforces_users(batch)
-            if response_json["status"] == "OK":
-                users = response_json["result"]
+            try:
+                # Fetch user information
+                response = check_codeforces_users(batch)
                 
-                # Collect valid handles
-                valid_handles = {user["handle"] for user in users}
-                all_valid_handles.update(valid_handles)
-                
-                # Find and remove non-existent handles
-                handles_to_remove = set(batch) - valid_handles
-                remaining_handles -= handles_to_remove
-                
-                # Log removed handles
-                if handles_to_remove:
-                    logging.debug(f"Handles not found: {handles_to_remove}")
-                
-                break
+                # Debugging: Print raw response content
+                logging.debug(f"Raw response content: {response.text}")
 
-            elif response_json["status"] == "FAILED" and response_json["comment"].startswith("handles:"):
-                # Find and remove non-existent handle
-                # Format: "handles: User with handle <username> not found"
-                handles_to_remove = {re.search(r"User with handle (.+) not found", response_json["comment"]).group(1)}
-                remaining_handles -= handles_to_remove
-                batch.remove(handles_to_remove.pop())
-                logging.warning(f"Handles not found: {handles_to_remove}")
+                # Attempt to decode JSON
+                try:
+                    response_json = response.json()
+                except requests.exceptions.JSONDecodeError as e:
+                    logging.error(f"JSON decode error: {e}")
+                    logging.error(f"Response content: {response.text}")
+                    all_batches_successful = False
+                    break
 
-            else:
-                logging.error(f"API Error: {response_json.get('comment', 'Unknown error')}")
+                if response_json["status"] == "OK":
+                    users = response_json["result"]
+                    
+                    # Collect valid handles
+                    valid_handles = {user["handle"] for user in users}
+                    all_valid_handles.update(valid_handles)
+                    
+                    # Find and remove non-existent handles
+                    handles_to_remove = set(batch) - valid_handles
+                    remaining_handles -= handles_to_remove
+                    
+                    # Log removed handles
+                    if handles_to_remove:
+                        logging.debug(f"Handles not found: {handles_to_remove}")
+                    
+                    break
+
+                elif response_json["status"] == "FAILED" and response_json["comment"].startswith("handles:"):
+                    # Find and remove non-existent handle
+                    # Format: "handles: User with handle <username> not found"
+                    handles_to_remove = {re.search(r"User with handle (.+) not found", response_json["comment"]).group(1)}
+                    remaining_handles -= handles_to_remove
+                    batch.remove(handles_to_remove.pop())
+                    logging.warning(f"Handles not found: {handles_to_remove}")
+
+                else:
+                    logging.error(f"API Error: {response_json.get('comment', 'Unknown error')}")
+                    all_batches_successful = False
+                    break
+                
+                logging.debug(f"Remaining handles: {remaining_handles}")
+
+            except Exception as e:
+                logging.error(f"Unexpected error: {e}")
+                logging.error(f"Batch content: {batch}")
                 all_batches_successful = False
                 break
-            
-            logging.debug(f"Remaining handles: {remaining_handles}")
     
     # Write valid handles to file
     with open('codeforces_handles.txt', 'a') as file:
