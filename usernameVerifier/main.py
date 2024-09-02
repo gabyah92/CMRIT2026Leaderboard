@@ -1,18 +1,21 @@
 import csv
+import hashlib
 import json
+import logging
 import os
 import re
+import string
+import random
+import sys
 import time
 import requests
-import sys
-import logging
+import urllib.parse
 from bs4 import BeautifulSoup
 from openpyxl import load_workbook
-from tqdm import tqdm
 from ratelimiter import RateLimiter
-import undetected_chromedriver as uc
-import urllib.parse
 from selenium.webdriver.common.by import By
+from tqdm import tqdm
+import undetected_chromedriver as uc
 
 LEETCODE_QUERY = '''
 https://leetcode.com/graphql?query=query
@@ -320,7 +323,6 @@ def check_codeforces_users(handles):
     
     try:
         response = requests.get(url)
-        response.raise_for_status()
         
         # Print and return JSON response
         json_response = response.json()
