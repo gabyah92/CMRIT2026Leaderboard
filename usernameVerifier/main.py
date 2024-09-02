@@ -458,14 +458,22 @@ def process_codechef(participants):
     Returns:
     None
     """
+    import logging
+    import time
+    from tqdm import tqdm
+
     logging.basicConfig(filename='codechef_debug.log', level=logging.DEBUG)
 
     # Initialize variables to store the last user's status and handle
     last_user_status = None
     last_user_handle = None
+    last_action = None
 
     with tqdm(total=len(participants), desc="Processing CodeChef Handles", unit="participant") as pbar:
         for participant in participants:
+            # Initialize progress bar text
+            pbar.set_postfix({"Last User": "", "Status": "", "Action": ""})
+
             # Check CodeChef URL for each participant
             logging.debug(f"Checking CodeChef URL for participant {participant.handle}")
 
@@ -475,14 +483,20 @@ def process_codechef(participants):
                     "https://www.codechef.com/users/" + participant.codechef_handle)
                 logging.debug(f"CodeChef URL exists: {codechef_url_exists}, Response URL: {response_url}")
 
-                if not codechef_url_exists and participant.codechef_handle != '#N/A':
+                time.sleep(0.5)
+
+                if not codechef_url_exists:
                     # Retry checking CodeChef URL
                     logging.debug(f"Retrying CodeChef URL check for participant {participant.handle}")
                     codechef_url_exists, response_url = check_url_exists(
                         "https://code-chef-rating-api.vercel.app/" + participant.codechef_handle)
                     logging.debug(f"CodeChef URL retry: {codechef_url_exists}, Response URL: {response_url}")
+                    last_action = "Retrying URL"
 
-                # Write participant data to file codechef_url_exists
+                else:
+                    last_action = "Checked URL"
+
+                # Write participant data to file
                 with open('codechef_handles.txt', 'a') as file:
                     file.write(f"{participant.handle}, {participant.codechef_handle}, {codechef_url_exists}\n")
                 logging.debug(f"Data written to file for participant {participant.handle}: {participant.codechef_handle},"
@@ -493,11 +507,9 @@ def process_codechef(participants):
                 last_user_status = codechef_url_exists 
                 last_user_handle = participant.codechef_handle
 
-            # Display the last user's status alongside their username within the progress bar
-                if last_user_handle is not None:
-                    pbar.set_postfix({"Last User": last_user_handle, "Status": last_user_status})
-
-                pbar.update(1)
+            # Display the last user's status alongside their username and the action being taken
+            pbar.set_postfix({"Last User": last_user_handle, "Status": last_user_status, "Action": last_action})
+            pbar.update(1)
 
     logging.shutdown()
 
