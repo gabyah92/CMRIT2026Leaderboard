@@ -309,7 +309,7 @@ def generate_api_signature(rand, method_name, handles, time, secret):
     hash_bytes = hashlib.sha512(to_hash.encode('utf-8')).digest()
     return ''.join(f"{byte:02x}" for byte in hash_bytes)
 
-def fetch_codeforces_data(handles):
+def check_codeforces_users(handles):
     """Fetch Codeforces user data using the API."""
     current_time = int(time.time())
     rand = generate_random_string()
@@ -318,28 +318,24 @@ def fetch_codeforces_data(handles):
     # Construct the request URL
     url = f"{CODEFORCES_URL}?handles={';'.join(handles)}&apiKey={API_KEY}&time={current_time}&apiSig={rand}{api_sig}"
     
-    retry_count = 0
-    max_retries = 10
-    while retry_count < max_retries:
-        try:
-            response = requests.get(url)
-            response.raise_for_status()
-            
-            # Print and return JSON response
-            json_response = response.json()
-            # Log the response
-            print(f"""
-            =======================================================
-            RESPONSE FROM CODEFORCES API:
-            {json.dumps(json_response, indent=4)}
-            =======================================================
-            """)
-            return json_response
-        except requests.RequestException as e:
-            retry_count += 1
-            print(f"Error fetching Codeforces data. Retrying attempt {retry_count}: {e}")
-    
-    raise Exception("Failed to fetch Codeforces data after multiple retries.")
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        
+        # Print and return JSON response
+        json_response = response.json()
+        # Log the response
+        print(f"""
+        =======================================================
+        RESPONSE FROM CODEFORCES API:
+        {json.dumps(json_response, indent=4)}
+        =======================================================
+        """)
+        return json_response
+    except requests.RequestException as e:
+        print(f"Error fetching Codeforces data: {e}")
+        raise Exception("Failed to fetch Codeforces data.")
+
 
 # Function to process Codeforces handles
 def process_codeforces(participants):
