@@ -115,6 +115,12 @@ def check_url_exists(url):
             return True, response.url
         except requests.exceptions.RequestException:
             return False, "Exception"
+    if "https://code-chef-rating-api.vercel.app/" in url:
+        response = requests.get(url)
+        # if success is true in the response json
+        if response.json().get("success"):
+            return True, response.url
+        return False, response.url
     try:
         response = requests.get(url, headers=header)
         if response.status_code == 200:
@@ -473,12 +479,12 @@ def process_codechef(participants):
                     # Retry checking CodeChef URL
                     logging.debug(f"Retrying CodeChef URL check for participant {participant.handle}")
                     codechef_url_exists, response_url = check_url_exists(
-                        "https://www.codechef.com/users/" + participant.codechef_handle)
+                        "https://code-chef-rating-api.vercel.app/" + participant.codechef_handle)
                     logging.debug(f"CodeChef URL retry: {codechef_url_exists}, Response URL: {response_url}")
 
                 # Write participant data to file codechef_url_exists
                 with open('codechef_handles.txt', 'a') as file:
-                    file.write(f"{participant.handle}, {participant.codechef_handle}, {True}\n")
+                    file.write(f"{participant.handle}, {participant.codechef_handle}, {codechef_url_exists}\n")
                 logging.debug(f"Data written to file for participant {participant.handle}: {participant.codechef_handle},"
                             f" {codechef_url_exists}")
                 logging.debug("---------------------------------------------------")
