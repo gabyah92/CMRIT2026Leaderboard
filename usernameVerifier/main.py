@@ -294,18 +294,19 @@ def process_leetcode(participants):
             raise RuntimeError(f"Error processing LeetCode handle for {handle}: {e}")
             
 # Load API_KEY and API_SECRET from environment variables
-API_KEY = os.getenv('CODEFORCES_API_KEY')
-API_SECRET = os.getenv('CODEFORCES_API_SECRET')
+API_KEY = os.getenv('CODEFORCES_KEY')
+API_SECRET = os.getenv('CODEFORCES_SECRET')
 CODEFORCES_URL = 'https://codeforces.com/api/user.info'
 
-# Function to check if Codeforces users exist
-def generate_random_string(length=6):
-    """Generate a random string of specified length."""
-    chars = string.ascii_letters + string.digits
-    return ''.join(random.choice(chars) for _ in range(length))
+DEBUG = False
 
-def generate_api_signature(rand, method_name, handles, time, secret):
-    """Generate API signature."""
+# Function to check if Codeforces users exist
+def generate_random_string(length: int) -> str:
+    """Generates a random string of specified length."""
+    return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
+
+def generate_api_sig(rand: str, method_name: str, handles: str, time: int, secret: str) -> str:
+    """Generates the API signature."""
     parameters = f"apiKey={API_KEY}&handles={handles}&time={time}"
     to_hash = f"{rand}/{method_name}?{parameters}#{secret}"
     
@@ -314,25 +315,30 @@ def generate_api_signature(rand, method_name, handles, time, secret):
 
 def check_codeforces_users(handles):
     """Fetch Codeforces user data using the API."""
+    random_string = generate_random_string(6)
+
     current_time = int(time.time())
-    rand = generate_random_string()
-    api_sig = generate_api_signature(rand, "user.info", ';'.join(handles), current_time, API_SECRET)
+
+    handles_string = ';'.join(handles)
+
+    api_sig = generate_api_sig(random_string, "user.info", handles_string, current_time, API_SECRET)
     
     # Construct the request URL
-    url = f"{CODEFORCES_URL}?handles={';'.join(handles)}&apiKey={API_KEY}&time={current_time}&apiSig={rand}{api_sig}"
-    
+    url = f"{CODEFORCES_URL}?handles={handles_string}&apiKey={API_KEY}&time={current_time}&apiSig={random_string}{api_sig}"
+
     try:
         response = requests.get(url)
         
         # Print and return JSON response
         json_response = response.json()
         # Log the response
-        print(f"""
-        =======================================================
-        RESPONSE FROM CODEFORCES API:
-        {json.dumps(json_response, indent=4)}
-        =======================================================
-        """)
+        if DEBUG:
+            print(f"""
+=======================================================
+RESPONSE FROM CODEFORCES API:
+{json.dumps(json_response, indent=4)}
+=======================================================
+""")
         return json_response
     except requests.RequestException as e:
         print(f"Error fetching Codeforces data: {e}")
@@ -431,6 +437,8 @@ def process_codeforces(participants):
         """
         print(failure_message)
         logging.error(failure_message.strip())
+        # Exit with error code 1
+        sys.exit(1)
     
     logging.shutdown()
 
