@@ -328,7 +328,12 @@ def fetch_codeforces_data(handles):
             # Print and return JSON response
             json_response = response.json()
             # Log the response
-            logging.debug(json_response)
+            print(f"""
+            =======================================================
+            RESPONSE FROM CODEFORCES API:
+            {json.dumps(json_response, indent=4)}
+            =======================================================
+            """)
             return json_response
         except requests.RequestException as e:
             retry_count += 1
