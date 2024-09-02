@@ -3,11 +3,26 @@ name: Python application
 on:
   # Trigger the workflow manually or on push to files in src/main/resources/
   workflow_dispatch:
+    inputs:
+      job:
+        description: 'Choose which job to run'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - geeksforgeeks
+          - codeforces
+          - leetcode
+          - codechef
+          - hackerrank
+          - combine
   schedule:
     - cron: '58 18 * * 1,5'
 
 jobs:
   geeksforgeeks:
+    if: ${{ github.event.inputs.job == 'all' || github.event.inputs.job == 'geeksforgeeks' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -15,23 +30,24 @@ jobs:
         with:
           ref: ${{ github.ref }}
 
-      - name: Download Username excel sheet # Download the Username excel sheet from the Google Sheets
-        run:  wget "https://docs.google.com/spreadsheets/d/1UEPRw2UcWdw4ZpmO4qZ6nOhpCygz_MWqtgvO1ugWf_E/pub?output=csv&gid=0&single=true" -O src/main/resources/CMRIT2026Leaderboard.csv
+      - name: Download Username Excel Sheet
+        run: wget "https://docs.google.com/spreadsheets/d/1UEPRw2UcWdw4ZpmO4qZ6nOhpCygz_MWqtgvO1ugWf_E/pub?output=csv&gid=0&single=true" -O src/main/resources/CMRIT2026Leaderboard.csv
 
       - name: Set up Python 3.10
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
-      - name: Install dependencies
+      - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r usernameVerifier/requirements.txt
-      - name: Run GeeksForGeeks platform
+
+      - name: Run GeeksForGeeks Platform
         run: |
           cd usernameVerifier
           python main.py ../src/main/resources/CMRIT2026Leaderboard.csv geeksforgeeks
-  
+
       - name: Archive GFG Handles
         uses: actions/upload-artifact@v4
         with:
@@ -41,39 +57,45 @@ jobs:
           retention-days: 5
 
   codeforces:
+    if: ${{ github.event.inputs.job == 'all' || github.event.inputs.job == 'codeforces' }}
     runs-on: ubuntu-latest
+    env:
+      CODEFORCES_KEY: ${{ secrets.CODEFORCES_KEY }}
+      CODEFORCES_SECRET: ${{ secrets.CODEFORCES_SECRET }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4.1.1
         with:
           ref: ${{ github.ref }}
 
-      - name: Download Username excel sheet # Download the Username excel sheet from the Google Sheets
-        run:  wget "https://docs.google.com/spreadsheets/d/1UEPRw2UcWdw4ZpmO4qZ6nOhpCygz_MWqtgvO1ugWf_E/pub?output=csv&gid=0&single=true" -O src/main/resources/CMRIT2026Leaderboard.csv
+      - name: Download Username Excel Sheet
+        run: wget "https://docs.google.com/spreadsheets/d/1UEPRw2UcWdw4ZpmO4qZ6nOhpCygz_MWqtgvO1ugWf_E/pub?output=csv&gid=0&single=true" -O src/main/resources/CMRIT2026Leaderboard.csv
 
-      - name: Set up Python 3.10 # Set up Python version 3.10
+      - name: Set up Python 3.10
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
-      - name: Install dependencies # Install Python dependencies from requirements.txt
+      - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r usernameVerifier/requirements.txt
-      - name: Run Codeforces script # Run the Python script for Codeforces
+
+      - name: Run Codeforces Script
         run: |
           cd usernameVerifier
           python main.py ../src/main/resources/CMRIT2026Leaderboard.csv codeforces
-          
-      - name: Archive Codeforces logs
+
+      - name: Archive Codeforces Logs
         uses: actions/upload-artifact@v4
         with:
           name: codeforces-handles
           path: usernameVerifier/codeforces_handles.txt
           compression-level: 9
-          retention-days: 5  
+          retention-days: 5
 
   leetcode:
+    if: ${{ github.event.inputs.job == 'all' || github.event.inputs.job == 'leetcode' }}
     runs-on: windows-latest
     env:
       USERNAME: ${{ secrets.TEMP_GITHUB_PASSWORD }}
@@ -81,28 +103,29 @@ jobs:
     steps:
       - uses: browser-actions/setup-chrome@v1
       - run: chrome --version
-      
+
       - name: Checkout Repository
-        uses: actions/checkout@v4.1.1 
+        uses: actions/checkout@v4.1.1
 
-      - name: Download Username excel sheet # Download the Username excel sheet from the Google Sheets
-        run:  C:\msys64\usr\bin\wget.exe "https://docs.google.com/spreadsheets/d/1UEPRw2UcWdw4ZpmO4qZ6nOhpCygz_MWqtgvO1ugWf_E/pub?output=csv&gid=0&single=true" -O src/main/resources/CMRIT2026Leaderboard.csv
+      - name: Download Username Excel Sheet
+        run: C:\msys64\usr\bin\wget.exe "https://docs.google.com/spreadsheets/d/1UEPRw2UcWdw4ZpmO4qZ6nOhpCygz_MWqtgvO1ugWf_E/pub?output=csv&gid=0&single=true" -O src/main/resources/CMRIT2026Leaderboard.csv
 
-      - name: Set up Python 3.10 # Set up Python version 3.10
+      - name: Set up Python 3.10
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
-      - name: Install dependencies # Install Python dependencies from requirements.txt
+      - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r usernameVerifier/requirements.txt
-      - name: Run LeetCode script # Run the Python script for LeetCode
+
+      - name: Run LeetCode Script
         run: |
           cd usernameVerifier
           python -u main.py ../src/main/resources/CMRIT2026Leaderboard.csv leetcode
-          
-      - name: Archive LeetCode logs
+
+      - name: Archive LeetCode Logs
         uses: actions/upload-artifact@v4
         with:
           name: leetcode-handles
@@ -110,8 +133,8 @@ jobs:
           compression-level: 9
           retention-days: 5
 
-
   codechef:
+    if: ${{ github.event.inputs.job == 'all' || github.event.inputs.job == 'codechef' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -119,24 +142,25 @@ jobs:
         with:
           ref: ${{ github.ref }}
 
-      - name: Download Username excel sheet # Download the Username excel sheet from the Google Sheets
-        run:  wget "https://docs.google.com/spreadsheets/d/1UEPRw2UcWdw4ZpmO4qZ6nOhpCygz_MWqtgvO1ugWf_E/pub?output=csv&gid=0&single=true" -O src/main/resources/CMRIT2026Leaderboard.csv
+      - name: Download Username Excel Sheet
+        run: wget "https://docs.google.com/spreadsheets/d/1UEPRw2UcWdw4ZpmO4qZ6nOhpCygz_MWqtgvO1ugWf_E/pub?output=csv&gid=0&single=true" -O src/main/resources/CMRIT2026Leaderboard.csv
 
       - name: Set up Python 3.10
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
-      - name: Install dependencies
+      - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r usernameVerifier/requirements.txt
-      - name: Run CodeChef processing
+
+      - name: Run CodeChef Processing
         run: |
           cd usernameVerifier
           python main.py ../src/main/resources/CMRIT2026Leaderboard.csv codechef
-          
-      - name: Archive CodeChef logs
+
+      - name: Archive CodeChef Logs
         uses: actions/upload-artifact@v4
         with:
           name: codechef-handles
@@ -145,6 +169,7 @@ jobs:
           retention-days: 5
 
   hackerrank:
+    if: ${{ github.event.inputs.job == 'all' || github.event.inputs.job == 'hackerrank' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -152,24 +177,25 @@ jobs:
         with:
           ref: ${{ github.ref }}
 
-      - name: Download Username excel sheet # Download the Username excel sheet from the Google Sheets
-        run:  wget "https://docs.google.com/spreadsheets/d/1UEPRw2UcWdw4ZpmO4qZ6nOhpCygz_MWqtgvO1ugWf_E/pub?output=csv&gid=0&single=true" -O src/main/resources/CMRIT2026Leaderboard.csv
+      - name: Download Username Excel Sheet
+        run: wget "https://docs.google.com/spreadsheets/d/1UEPRw2UcWdw4ZpmO4qZ6nOhpCygz_MWqtgvO1ugWf_E/pub?output=csv&gid=0&single=true" -O src/main/resources/CMRIT2026Leaderboard.csv
 
       - name: Set up Python 3.10
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
-      - name: Install dependencies
+      - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r usernameVerifier/requirements.txt
-      - name: Run HackerRank processing
+
+      - name: Run HackerRank Processing
         run: |
           cd usernameVerifier
           python main.py ../src/main/resources/CMRIT2026Leaderboard.csv hackerrank
 
-      - name: Archive HackerRank logs
+      - name: Archive HackerRank Logs
         uses: actions/upload-artifact@v4
         with:
           name: hackerrank-handles
@@ -177,8 +203,8 @@ jobs:
           compression-level: 9
           retention-days: 5
 
-
   combine:
+    if: ${{ github.event.inputs.job == 'all' || github.event.inputs.job == 'combine' }}
     runs-on: ubuntu-latest
     needs: [geeksforgeeks, codeforces, leetcode, codechef, hackerrank]
     steps:
@@ -187,31 +213,30 @@ jobs:
         with:
           ref: ${{ github.ref }}
 
-      - name: Download Username excel sheet # Download the Username excel sheet from the Google Sheets
-        run:  wget "https://docs.google.com/spreadsheets/d/1UEPRw2UcWdw4ZpmO4qZ6nOhpCygz_MWqtgvO1ugWf_E/pub?output=csv&gid=0&single=true" -O src/main/resources/CMRIT2026Leaderboard.csv
+      - name: Download Username Excel Sheet
+        run: wget "https://docs.google.com/spreadsheets/d/1UEPRw2UcWdw4ZpmO4qZ6nOhpCygz_MWqtgvO1ugWf_E/pub?output=csv&gid=0&single=true" -O src/main/resources/CMRIT2026Leaderboard.csv
 
-
-      - name: Download geeksforgeeks handles.
+      - name: Download GeeksForGeeks Handles
         uses: actions/download-artifact@v4
         with:
           name: gfg_handles
 
-      - name: Download codeforces handles
+      - name: Download Codeforces Handles
         uses: actions/download-artifact@v4
         with:
           name: codeforces-handles
-  
-      - name: Download leetcode handles
+
+      - name: Download LeetCode Handles
         uses: actions/download-artifact@v4
         with:
           name: leetcode-handles
-  
-      - name: Download codechef handles
+
+      - name: Download CodeChef Handles
         uses: actions/download-artifact@v4
         with:
           name: codechef-handles
-  
-      - name: Download hackerrank handles
+
+      - name: Download HackerRank Handles
         uses: actions/download-artifact@v4
         with:
           name: hackerrank-handles
@@ -221,15 +246,16 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: Install dependencies
+      - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r usernameVerifier/requirements.txt
-      - name: Run combine option
+
+      - name: Run Combine Option
         run: |
           python usernameVerifier/main.py src/main/resources/CMRIT2026Leaderboard.csv combine
-          
-      - name: Get the current date
+
+      - name: Get the Current Date
         id: date
         run: echo "NOW=$(date +'%Y-%m-%dT%H:%M:%S')" >> $GITHUB_ENV
 

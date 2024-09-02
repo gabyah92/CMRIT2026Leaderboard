@@ -1,18 +1,21 @@
 import csv
+import hashlib
 import json
+import logging
 import os
 import re
+import string
+import random
+import sys
 import time
 import requests
-import sys
-import logging
+import urllib.parse
 from bs4 import BeautifulSoup
 from openpyxl import load_workbook
-from tqdm import tqdm
 from ratelimiter import RateLimiter
-import undetected_chromedriver as uc
-import urllib.parse
 from selenium.webdriver.common.by import By
+from tqdm import tqdm
+import undetected_chromedriver as uc
 
 LEETCODE_QUERY = '''
 https://leetcode.com/graphql?query=query
@@ -112,6 +115,12 @@ def check_url_exists(url):
             return True, response.url
         except requests.exceptions.RequestException:
             return False, "Exception"
+    if "https://code-chef-rating-api.vercel.app/" in url:
+        response = requests.get(url)
+        # if success is true in the response json
+        if response.json().get("success"):
+            return True, response.url
+        return False, response.url
     try:
         response = requests.get(url, headers=header)
         if response.status_code == 200:
@@ -290,13 +299,57 @@ def process_leetcode(participants):
         except Exception as e:
             raise RuntimeError(f"Error processing LeetCode handle for {handle}: {e}")
             
+# Load API_KEY and API_SECRET from environment variables
+API_KEY = os.getenv('CODEFORCES_KEY')
+API_SECRET = os.getenv('CODEFORCES_SECRET')
+CODEFORCES_URL = 'https://codeforces.com/api/user.info'
+
+DEBUG = False
 
 # Function to check if Codeforces users exist
+def generate_random_string(length: int) -> str:
+    """Generates a random string of specified length."""
+    return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
+
+def generate_api_sig(rand: str, method_name: str, handles: str, time: int, secret: str) -> str:
+    """Generates the API signature."""
+    parameters = f"apiKey={API_KEY}&handles={handles}&time={time}"
+    to_hash = f"{rand}/{method_name}?{parameters}#{secret}"
+    
+    hash_bytes = hashlib.sha512(to_hash.encode('utf-8')).digest()
+    return ''.join(f"{byte:02x}" for byte in hash_bytes)
+
 def check_codeforces_users(handles):
-    url = "https://codeforces.com/api/user.info"
-    response = requests.get(url, params={'handles': ';'.join(handles)})
-    print(response.json())
-    return response.json()
+    """Fetch Codeforces user data using the API."""
+    random_string = generate_random_string(6)
+
+    current_time = int(time.time())
+
+    handles_string = ';'.join(handles)
+
+    api_sig = generate_api_sig(random_string, "user.info", handles_string, current_time, API_SECRET)
+    
+    # Construct the request URL
+    url = f"{CODEFORCES_URL}?handles={handles_string}&apiKey={API_KEY}&time={current_time}&apiSig={random_string}{api_sig}"
+
+    try:
+        response = requests.get(url)
+        
+        # Print and return JSON response
+        json_response = response.json()
+        # Log the response
+        if DEBUG:
+            print(f"""
+=======================================================
+RESPONSE FROM CODEFORCES API:
+{json.dumps(json_response, indent=4)}
+=======================================================
+""")
+        return json_response
+    except requests.RequestException as e:
+        print(f"Error fetching Codeforces data: {e}")
+        raise Exception("Failed to fetch Codeforces data.")
+
 
 # Function to process Codeforces handles
 def process_codeforces(participants):
@@ -390,6 +443,8 @@ def process_codeforces(participants):
         """
         print(failure_message)
         logging.error(failure_message.strip())
+        # Exit with error code 1
+        sys.exit(1)
     
     logging.shutdown()
 
@@ -424,12 +479,12 @@ def process_codechef(participants):
                     # Retry checking CodeChef URL
                     logging.debug(f"Retrying CodeChef URL check for participant {participant.handle}")
                     codechef_url_exists, response_url = check_url_exists(
-                        "https://www.codechef.com/users/" + participant.codechef_handle)
+                        "https://code-chef-rating-api.vercel.app/" + participant.codechef_handle)
                     logging.debug(f"CodeChef URL retry: {codechef_url_exists}, Response URL: {response_url}")
 
                 # Write participant data to file codechef_url_exists
                 with open('codechef_handles.txt', 'a') as file:
-                    file.write(f"{participant.handle}, {participant.codechef_handle}, {True}\n")
+                    file.write(f"{participant.handle}, {participant.codechef_handle}, {codechef_url_exists}\n")
                 logging.debug(f"Data written to file for participant {participant.handle}: {participant.codechef_handle},"
                             f" {codechef_url_exists}")
                 logging.debug("---------------------------------------------------")

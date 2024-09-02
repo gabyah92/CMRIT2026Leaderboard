@@ -9,6 +9,22 @@ name: Java CI with Gradle
 
 on:
   workflow_dispatch:
+    inputs:
+      job:
+        description: 'Select the job to run'
+        required: false
+        default: 'build'  # Default to 'build' if no input is provided
+        type: choice
+        options:
+          - build
+          - codeforces
+          - gfg
+          - gfg_practice
+          - leetcode
+          - codechef
+          - hackerrank
+          - build_leaderboard
+          - all  # Option to run all jobs
   schedule:
     - cron: '00 20 * * 1,5'
   pull_request:
@@ -16,43 +32,41 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event_name == 'pull_request' }}
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4.1.1
+        with:
+          ref: ${{ github.ref }}
 
-    - name: Checkout Repository
-      uses: actions/checkout@v4.1.1
-      with:
-        ref: ${{ github.ref }}
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          architecture: x64
 
-    - name: Set up JDK 21
-      uses: actions/setup-java@v4
-      with:
-        java-version: '21'
-        distribution: 'temurin' 
-        architecture: x64
+      - name: Make gradlew runnable
+        run: |
+          chmod +x gradlew
 
-    - name: Make gradlew runnable
-      run: |
-        chmod +x gradlew
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v3
 
-    - name: Setup Gradle
-      uses: gradle/gradle-build-action@v3
-    
-    - name: Execute Gradle build
-      run: ./gradlew build
-      
-    - name: Archive JAR Artifact
-      uses: actions/upload-artifact@v4.0.0
-      with:
-        name: jar-artifact
-        path: ./build/libs/CMRIT2026Leaderboard-1.0-SNAPSHOT.jar
-        retention-days: 1
+      - name: Execute Gradle build
+        run: ./gradlew build
 
+      - name: Archive JAR Artifact
+        uses: actions/upload-artifact@v4.0.0
+        with:
+          name: jar-artifact
+          path: ./build/libs/CMRIT2026Leaderboard-1.0-SNAPSHOT.jar
+          retention-days: 1
 
   codeforces:
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' && (github.event.inputs.job == 'codeforces' || github.event.inputs.job == 'all') || github.event_name != 'workflow_dispatch' }}
     needs: build
     env:
       CODEFORCES_KEY: ${{ secrets.CODEFORCES_KEY }}
@@ -88,47 +102,7 @@ jobs:
 
   gfg:
     runs-on: ubuntu-latest
-    needs: build
-    env:
-        GFG_USERNAME: ${{ secrets.GFG_USERNAME }}
-        GFG_PASSWORD: ${{ secrets.GFG_PASSWORD }}
-    steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v4.1.1
-      with:
-        ref: ${{ github.ref }}
-
-    - name: Set up JDK 21
-      uses: actions/setup-java@v4
-      with:
-        java-version: '21'
-        distribution: 'temurin'
-        architecture: x64
-
-    - name: Install gecko driver
-      # Run shell script in src/main/resources/gecko.sh
-      run: |
-        chmod +x src/main/resources/gecko.sh
-        ./src/main/resources/gecko.sh
-
-    - name: Download JAR Artifact
-      uses: actions/download-artifact@v4.0.0
-      with:
-        name: jar-artifact
-        path: ./build/libs/
-
-    - name: Run JAR Artifact
-      run: java -jar ./build/libs/CMRIT2026Leaderboard-1.0-SNAPSHOT.jar gfg
-
-    - name: Upload GFG Ratings
-      uses: actions/upload-artifact@v4.0.0
-      with:
-        name: gfg_ratings
-        path: ./gfg_ratings.txt
-        retention-days: 1
-
-  gfg_practice:
-    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' && (github.event.inputs.job == 'gfg' || github.event.inputs.job == 'all') || github.event_name != 'workflow_dispatch' }}
     needs: build
     env:
       GFG_USERNAME: ${{ secrets.GFG_USERNAME }}
@@ -136,6 +110,8 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4.1.1
+        with:
+          ref: ${{ github.ref }}
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
@@ -145,7 +121,47 @@ jobs:
           architecture: x64
 
       - name: Install gecko driver
-        # Run shell script in src/main/resources/gecko.sh
+        run: |
+          chmod +x src/main/resources/gecko.sh
+          ./src/main/resources/gecko.sh
+
+      - name: Download JAR Artifact
+        uses: actions/download-artifact@v4.0.0
+        with:
+          name: jar-artifact
+          path: ./build/libs/
+
+      - name: Run JAR Artifact
+        run: java -jar ./build/libs/CMRIT2026Leaderboard-1.0-SNAPSHOT.jar gfg
+
+      - name: Upload GFG Ratings
+        uses: actions/upload-artifact@v4.0.0
+        with:
+          name: gfg_ratings
+          path: ./gfg_ratings.txt
+          retention-days: 1
+
+  gfg_practice:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' && (github.event.inputs.job == 'gfg_practice' || github.event.inputs.job == 'all') || github.event_name != 'workflow_dispatch' }}
+    needs: build
+    env:
+      GFG_USERNAME: ${{ secrets.GFG_USERNAME }}
+      GFG_PASSWORD: ${{ secrets.GFG_PASSWORD }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4.1.1
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          architecture: x64
+
+      - name: Install gecko driver
         run: |
           chmod +x src/main/resources/gecko.sh
           ./src/main/resources/gecko.sh
@@ -168,193 +184,195 @@ jobs:
 
   leetcode:
     runs-on: windows-latest
+    if: ${{ github.event_name == 'workflow_dispatch' && (github.event.inputs.job == 'leetcode' || github.event.inputs.job == 'all') || github.event_name != 'workflow_dispatch' }}
     needs: build
     env:
       USERNAME: ${{ secrets.TEMP_GITHUB_PASSWORD }}
       PASSWD: ${{ secrets.TEMP_GITHUB_USERNAME }}
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v4.1.1
-      with:
-        ref: ${{ github.ref }}
+      - name: Checkout Repository
+        uses: actions/checkout@v4.1.1
+        with:
+          ref: ${{ github.ref }}
 
-    - name: Set up JDK 21
-      uses: actions/setup-java@v4
-      with:
-        java-version: '21'
-        distribution: 'temurin'
-        architecture: x64
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          architecture: x64
 
-    - name: Download JAR Artifact
-      uses: actions/download-artifact@v4.0.0
-      with:
-        name: jar-artifact
-        path: ./build/libs/
+      - name: Download JAR Artifact
+        uses: actions/download-artifact@v4.0.0
+        with:
+          name: jar-artifact
+          path: ./build/libs/
 
-    - name: Run JAR Artifact
-      run: java -jar ./build/libs/CMRIT2026Leaderboard-1.0-SNAPSHOT.jar load_data
+      - name: Run JAR Artifact
+        run: java -jar ./build/libs/CMRIT2026Leaderboard-1.0-SNAPSHOT.jar load_data
 
-    - name: Set up Python 3.10 # Set up Python version 3.10
-      uses: actions/setup-python@v3
-      with:
-        python-version: "3.10"
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.10"
 
-    - name: Install dependencies # Install Python dependencies from requirements.txt
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r src/main/python/requirements.txt
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r src/main/python/requirements.txt
 
-    - name: Run the program # Run the Python main.py script
-      uses: nick-fields/retry@v3
-      with:
-        timeout_minutes: 20
-        max_attempts: 10
-        retry_on: error
-        command: python -u src/main/python/scrape_leetcode.py
+      - name: Run the program
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 20
+          max_attempts: 10
+          retry_on: error
+          command: python -u src/main/python/scrape_leetcode.py
 
-    - name: Upload LeetCode Ratings
-      uses: actions/upload-artifact@v4.0.0
-      with:
-        name: leetcode_ratings
-        path: ./leetcode_ratings.txt
-        retention-days: 1
+      - name: Upload LeetCode Ratings
+        uses: actions/upload-artifact@v4.0.0
+        with:
+          name: leetcode_ratings
+          path: ./leetcode_ratings.txt
+          retention-days: 1
 
   codechef:
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' && (github.event.inputs.job == 'codechef' || github.event.inputs.job == 'all') || github.event_name != 'workflow_dispatch' }}
     needs: build
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v4.1.1
-      with:
-        ref: ${{ github.ref }}
+      - name: Checkout Repository
+        uses: actions/checkout@v4.1.1
+        with:
+          ref: ${{ github.ref }}
 
-    - name: Set up JDK 21
-      uses: actions/setup-java@v4
-      with:
-        java-version: '21'
-        distribution: 'temurin'
-        architecture: x64
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          architecture: x64
 
-    - name: Download JAR Artifact
-      uses: actions/download-artifact@v4.0.0
-      with:
-        name: jar-artifact
-        path: ./build/libs/
+      - name: Download JAR Artifact
+        uses: actions/download-artifact@v4.0.0
+        with:
+          name: jar-artifact
+          path: ./build/libs/
 
-    - name: Run JAR Artifact
-      run: java -jar ./build/libs/CMRIT2026Leaderboard-1.0-SNAPSHOT.jar codechef
+      - name: Run JAR Artifact
+        run: java -jar ./build/libs/CMRIT2026Leaderboard-1.0-SNAPSHOT.jar codechef
 
-    - name: Upload CodeChef Ratings
-      uses: actions/upload-artifact@v4.0.0
-      with:
-        name: codechef_ratings
-        path: ./codechef_ratings.txt
-        retention-days: 1
+      - name: Upload CodeChef Ratings
+        uses: actions/upload-artifact@v4.0.0
+        with:
+          name: codechef_ratings
+          path: ./codechef_ratings.txt
+          retention-days: 1
 
   hackerrank:
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' && (github.event.inputs.job == 'hackerrank' || github.event.inputs.job == 'all') || github.event_name != 'workflow_dispatch' }}
     needs: build
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v4.1.1
-      with:
-        ref: ${{ github.ref }}
+      - name: Checkout Repository
+        uses: actions/checkout@v4.1.1
+        with:
+          ref: ${{ github.ref }}
 
-    - name: Set up JDK 21
-      uses: actions/setup-java@v4
-      with:
-        java-version: '21'
-        distribution: 'temurin'
-        architecture: x64
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          architecture: x64
 
-    - name: Download JAR Artifact
-      uses: actions/download-artifact@v4.0.0
-      with:
-        name: jar-artifact
-        path: ./build/libs/
+      - name: Download JAR Artifact
+        uses: actions/download-artifact@v4.0.0
+        with:
+          name: jar-artifact
+          path: ./build/libs/
 
-    - name: Run JAR Artifact
-      run: java -jar ./build/libs/CMRIT2026Leaderboard-1.0-SNAPSHOT.jar hackerrank
+      - name: Run JAR Artifact
+        run: java -jar ./build/libs/CMRIT2026Leaderboard-1.0-SNAPSHOT.jar hackerrank
 
-    - name: Upload HackerRank Ratings
-      uses: actions/upload-artifact@v4.0.0
-      with:
-        name: hackerrank_ratings
-        path: ./hackerrank_ratings.txt
-        retention-days: 1
+      - name: Upload HackerRank Ratings
+        uses: actions/upload-artifact@v4.0.0
+        with:
+          name: hackerrank_ratings
+          path: ./hackerrank_ratings.txt
+          retention-days: 1
 
   build_leaderboard:
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' && (github.event.inputs.job == 'build_leaderboard' || github.event.inputs.job == 'all') || github.event_name != 'workflow_dispatch' }}
     needs: [codeforces, gfg, gfg_practice, leetcode, codechef, hackerrank]
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v4.1.1
-      with:
-        ref: ${{ github.ref }}
+      - name: Checkout Repository
+        uses: actions/checkout@v4.1.1
+        with:
+          ref: ${{ github.ref }}
 
-    - name: Set up JDK 21
-      uses: actions/setup-java@v4
-      with:
-        java-version: '21'
-        distribution: 'temurin'
-        architecture: x64
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          architecture: x64
 
-    - name: Download JAR Artifact
-      uses: actions/download-artifact@v4.0.0
-      with:
-        name: jar-artifact
-        path: ./build/libs/
+      - name: Download JAR Artifact
+        uses: actions/download-artifact@v4.0.0
+        with:
+          name: jar-artifact
+          path: ./build/libs/
 
-    # Download the previous ratings into root directory
-    - name: Download Codeforces Ratings
-      uses: actions/download-artifact@v4.0.0
-      with:
-        name: codeforces_ratings
-        path: ./
+      - name: Download Codeforces Ratings
+        uses: actions/download-artifact@v4.0.0
+        with:
+          name: codeforces_ratings
+          path: ./
 
-    - name: Download GFG Ratings
-      uses: actions/download-artifact@v4.0.0
-      with:
+      - name: Download GFG Ratings
+        uses: actions/download-artifact@v4.0.0
+        with:
           name: gfg_ratings
           path: ./
 
-    - name: Download GFG Practice Ratings
-      uses: actions/download-artifact@v4.0.0
-      with:
+      - name: Download GFG Practice Ratings
+        uses: actions/download-artifact@v4.0.0
+        with:
           name: gfg_practice_ratings
           path: ./
 
-    - name: Download LeetCode Ratings
-      uses: actions/download-artifact@v4.0.0
-      with:
+      - name: Download LeetCode Ratings
+        uses: actions/download-artifact@v4.0.0
+        with:
           name: leetcode_ratings
           path: ./
 
-    - name: Download CodeChef Ratings
-      uses: actions/download-artifact@v4.0.0
-      with:
+      - name: Download CodeChef Ratings
+        uses: actions/download-artifact@v4.0.0
+        with:
           name: codechef_ratings
           path: ./
 
-    - name: Download HackerRank Ratings
-      uses: actions/download-artifact@v4.0.0
-      with:
+      - name: Download HackerRank Ratings
+        uses: actions/download-artifact@v4.0.0
+        with:
           name: hackerrank_ratings
           path: ./
 
-    - name: Run JAR Artifact
-      run: java -jar ./build/libs/CMRIT2026Leaderboard-1.0-SNAPSHOT.jar build_leaderboard
+      - name: Run JAR Artifact
+        run: java -jar ./build/libs/CMRIT2026Leaderboard-1.0-SNAPSHOT.jar build_leaderboard
 
-    - name: Get the current date
-      id: date
-      run: echo "NOW=$(date +'%Y-%m-%dT%H:%M:%S')" >> $GITHUB_ENV
+      - name: Get the current date
+        id: date
+        run: echo "NOW=$(date +'%Y-%m-%dT%H:%M:%S')" >> $GITHUB_ENV
 
-    # Push the updated Leaderboard to the repository
-    - name: Push Leaderboard
-      if: github.event_name != 'pull_request'  # Skip this job if triggered by pull request event
-      run: |
-        git config --global user.email "actions@github.com"
-        git config --global user.name "GitHub Actions"
-        git add ./Leaderboards/CurrentCMRITLeaderboard2026.xlsx
-        git commit -m "Add generated leaderboard data - $NOW"
-        git push --force
+      - name: Push Leaderboard
+        if: github.event_name != 'pull_request'
+        run: |
+          git config --global user.email "actions@github.com"
+          git config --global user.name "GitHub Actions"
+          git add ./Leaderboards/CurrentCMRITLeaderboard2026.xlsx
+          git commit -m "Add generated leaderboard data - $NOW"
+          git push --force
