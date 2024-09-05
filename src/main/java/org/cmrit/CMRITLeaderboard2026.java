@@ -907,7 +907,7 @@ public class CMRITLeaderboard2026 {
 
             // Add a delay between requests
             try {
-                Thread.sleep(500); // 500 milliseconds = 0.5 seconds
+                Thread.sleep(60000); // 500 milliseconds = 0.5 seconds
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 System.err.println("Thread interrupted: " + e.getMessage());
