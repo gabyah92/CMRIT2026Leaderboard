@@ -387,7 +387,7 @@ def process_codeforces(participants):
                 users = response_json["result"]
                 
                 # Collect valid handles
-                valid_handles = {user["handle"] for user in users}
+                valid_handles = {user["handle"].lower() for user in users}
                 all_valid_handles.update(valid_handles)
                 
                 # Find and remove non-existent handles
