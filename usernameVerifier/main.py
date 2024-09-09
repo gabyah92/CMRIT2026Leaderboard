@@ -66,7 +66,7 @@ class Participant:
         self.codechef_handle = codechef_handle
         self.hackerrank_handle = hackerrank_handle
         self.geeksforgeeks_url_exists = geeksforgeeks_url_exists
-        self._url_exists = _url_exists
+        self.codeforces_url_exists = codeforces_url_exists
         self.leetcode_url_exists = leetcode_url_exists
         self.codechef_url_exists = codechef_url_exists
         self.hackerrank_url_exists = hackerrank_url_exists
