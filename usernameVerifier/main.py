@@ -61,12 +61,12 @@ class Participant:
         geeksforgeeks_handle = geeksforgeeks_handle.strip()
         self.handle = handle
         self.geeksforgeeks_handle = geeksforgeeks_handle
-        self.codeforces_handle = codeforces_handle
+        self.codeforces_handle = codeforces_handle.lower()
         self.leetcode_handle = leetcode_handle
         self.codechef_handle = codechef_handle
         self.hackerrank_handle = hackerrank_handle
         self.geeksforgeeks_url_exists = geeksforgeeks_url_exists
-        self.codeforces_url_exists = codeforces_url_exists
+        self._url_exists = _url_exists
         self.leetcode_url_exists = leetcode_url_exists
         self.codechef_url_exists = codechef_url_exists
         self.hackerrank_url_exists = hackerrank_url_exists
@@ -330,7 +330,7 @@ def check_codeforces_users(handles):
     api_sig = generate_api_sig(random_string, "user.info", handles_string, current_time, API_SECRET)
     
     # Construct the request URL
-    url = f"{CODEFORCES_URL}?handles={handles_string}&apiKey={API_KEY}&time={current_time}&apiSig={random_string}{api_sig}"
+    url = f"{CODEFORCES_URL}?handles={handles_string.lower()}&apiKey={API_KEY}&time={current_time}&apiSig={random_string}{api_sig}"
 
     try:
         response = requests.get(url)
@@ -356,7 +356,7 @@ def process_codeforces(participants):
     logging.basicConfig(filename='codeforces_debug.log', level=logging.DEBUG)
 
     # Load Codeforces handles from participants
-    handles = {participant.codeforces_handle.replace(" ", "") for participant in participants if participant.codeforces_handle != '#N/A' and "@" not in participant.codeforces_handle}
+    handles = {participant.codeforces_handle.replace(" ", "").lower() for participant in participants if participant.codeforces_handle != '#N/A' and "@" not in participant.codeforces_handle}
     
     # Initialize variables
     remaining_handles = set(handles)
