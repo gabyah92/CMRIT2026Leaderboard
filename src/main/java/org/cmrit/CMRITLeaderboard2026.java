@@ -866,7 +866,7 @@ public class CMRITLeaderboard2026 {
                 connection = websiteUrl.toURL().openConnection();
                 o = (HttpURLConnection) connection;
                 o.setRequestMethod("GET");
-                if(o.getResponseCode() == 500 ) { Thread.sleep(60000); continue; }
+                if(o.getResponseCode() == 500 ) { Thread.sleep(15000); continue; }
                 else if (o.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND || o.getResponseCode() == HttpURLConnection.HTTP_BAD_REQUEST) {
                     throw new RuntimeException();
                 }
@@ -880,11 +880,11 @@ public class CMRITLeaderboard2026 {
                     JSONObject jsonObject = new JSONObject(jsonContent.toString());
                     int codechefRating = 0;
                     try {
-                        if( (i-2)%8 == 0 ) Thread.sleep(60000);
+                        Thread.sleep(15000);
                         try {
                         codechefRating = jsonObject.getInt("currentRating"); 
                         } catch(Exception e) {
-                            Thread.sleep(9900);
+                            Thread.sleep(15000);
                             codechefRating = jsonObject.getInt("currentRating"); 
                         }
 
