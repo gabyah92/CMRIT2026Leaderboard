@@ -7,6 +7,7 @@ const numberSort = (num1, num2) => {
 const floatSort = (num1, num2) => {
     return parseFloat(num1) - parseFloat(num2);
 };
+
 const gridOptions = { 
     pagination: true,  
     paginationPageSize: 10,
@@ -35,80 +36,79 @@ const gridOptions = {
 
 // XMLHttpRequest in promise format
 function makeRequest(method, url, success, error) {
-  var httpRequest = new XMLHttpRequest();
-  httpRequest.open('GET', url, true);
-  httpRequest.responseType = 'arraybuffer';
+    var httpRequest = new XMLHttpRequest();
+    httpRequest.open('GET', url, true);
+    httpRequest.responseType = 'arraybuffer';
 
-  httpRequest.open(method, url);
-  httpRequest.onload = function () {
-    success(httpRequest.response);
-  };
-  httpRequest.onerror = function () {
-    error(httpRequest.response);
-  };
-  httpRequest.send();
+    httpRequest.open(method, url);
+    httpRequest.onload = function () {
+        success(httpRequest.response);
+    };
+    httpRequest.onerror = function () {
+        error(httpRequest.response);
+    };
+    httpRequest.send();
 }
 
-// read the raw data and convert it to a XLSX workbook
+// read the raw data and convert it to an XLSX workbook
 function convertDataToWorkbook(dataRows) {
-  /* convert data to binary string */
-  var data = new Uint8Array(dataRows);
-  var arr = [];
+    /* convert data to binary string */
+    var data = new Uint8Array(dataRows);
+    var arr = [];
 
-  for (var i = 0; i !== data.length; ++i) {
-    arr[i] = String.fromCharCode(data[i]);
-  }
+    for (var i = 0; i !== data.length; ++i) {
+        arr[i] = String.fromCharCode(data[i]);
+    }
 
-  var bstr = arr.join('');
+    var bstr = arr.join('');
 
-  return XLSX.read(bstr, { type: 'binary' });
+    return XLSX.read(bstr, { type: 'binary' });
 }
 
 // pull out the values we're after, converting it into an array of rowData
-
 function populateGrid(workbook) {
-  // our data is in the first sheet
-  var firstSheetName = workbook.SheetNames[0];
-  var worksheet = workbook.Sheets[firstSheetName];
+    // our data is in the first sheet
+    var firstSheetName = workbook.SheetNames[0];
+    var worksheet = workbook.Sheets[firstSheetName];
 
-  // we expect the following columns to be present
-  var columns = {
-    // Rank,Handle,Codeforces_Handle,Codeforces_Rating,GFG_Handle,GFG_Contest_Score,GFG_Practice_Score,Leetcode_Handle,Leetcode_Rating,Codechef_Handle,Codechef_Rating,HackerRank_Handle,HackerRank_Practice_Score,Percentile
-    A: 'Rank',
-    B: 'Handle',
-    C: 'Codeforces_Handle',
-    D: 'Codeforces_Rating',
-    E: 'GFG_Handle',
-    F: 'GFG_Contest_Score',
-    G: 'GFG_Practice_Score',
-    H: 'Leetcode_Handle',
-    I: 'Leetcode_Rating',
-    J: 'Codechef_Handle',
-    K: 'Codechef_Rating',
-    L: 'HackerRank_Handle',
-    M: 'HackerRank_Practice_Score',
-    N: 'Percentile',
-  };
+    // we expect the following columns to be present
+    var columns = {
+        // Rank,Handle,Codeforces_Handle,Codeforces_Rating,GFG_Handle,GFG_Contest_Score,GFG_Practice_Score,Leetcode_Handle,Leetcode_Rating,Codechef_Handle,Codechef_Rating,HackerRank_Handle,HackerRank_Practice_Score,Percentile
+        A: 'Rank',
+        B: 'Handle',
+        C: 'Codeforces_Handle',
+        D: 'Codeforces_Rating',
+        E: 'GFG_Handle',
+        F: 'GFG_Contest_Score',
+        G: 'GFG_Practice_Score',
+        H: 'Leetcode_Handle',
+        I: 'Leetcode_Rating',
+        J: 'Codechef_Handle',
+        K: 'Codechef_Rating',
+        L: 'HackerRank_Handle',
+        M: 'HackerRank_Practice_Score',
+        N: 'Percentile',
+    };
 
-  var rowData = [];
+    var rowData = [];
 
-  // start at the 2nd row - the first row are the headers
-  var rowIndex = 2;
+    // start at the 2nd row - the first row are the headers
+    var rowIndex = 2;
 
-  // iterate over the worksheet pulling out the columns we're expecting
-  while (worksheet['A' + rowIndex]) {
-    var row = {};
-    Object.keys(columns).forEach((column) => {
-      row[columns[column]] = worksheet[column + rowIndex].w;
-    });
+    // iterate over the worksheet pulling out the columns we're expecting
+    while (worksheet['A' + rowIndex]) {
+        var row = {};
+        Object.keys(columns).forEach((column) => {
+            row[columns[column]] = worksheet[column + rowIndex] ? worksheet[column + rowIndex].w : '';
+        });
 
-    rowData.push(row);
+        rowData.push(row);
 
-    rowIndex++;
-  }
+        rowIndex++;
+    }
 
-  // finally, set the imported rowData into the grid
-  gridApi.setGridOption('rowData', rowData);
+    // finally, set the imported rowData into the grid
+    gridApi.setGridOption('rowData', rowData);
 }
 
 const updateDateElement = document.getElementById('updateDate');
@@ -117,63 +117,86 @@ const repoOwner = 'gabyah92'; // GitHub username or organization name
 const repoName = 'CMRIT2026Leaderboard'; // GitHub repository name
 
 function formatDate(dateString) {
-  const options = { year: 'numeric', month: 'long', day: 'numeric' };
-  return new Date(dateString).toLocaleDateString(undefined, options);
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    return new Date(dateString).toLocaleDateString(undefined, options);
 }
 
 function updateLastUpdatedDate() {
-  const url = `https://api.github.com/repos/${repoOwner}/${repoName}/commits?path=${encodeURIComponent(filePath)}&page=1&per_page=1`;
+    const url = `https://api.github.com/repos/${repoOwner}/${repoName}/commits?path=${encodeURIComponent(filePath)}&page=1&per_page=1`;
 
-  fetch(url)
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Failed to fetch commits from GitHub');
-      }
-      return response.json();
-    })
-    .then(data => {
-      if (data.length > 0) {
-        const lastCommitDate = data[0].commit.committer.date;
-        const lastCommitTime = new Date(lastCommitDate).toLocaleTimeString();
-        updateDateElement.textContent = formatDate(lastCommitDate) + ' at ' + lastCommitTime;
-      } else {
-        updateDateElement.textContent = 'No commits found';
-      }
-    })
-    .catch(() => {
-      updateDateElement.textContent = 'Error fetching date';
-    });
+    fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch commits from GitHub');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.length > 0) {
+                const lastCommitDate = data[0].commit.committer.date;
+                const lastCommitTime = new Date(lastCommitDate).toLocaleTimeString();
+                updateDateElement.textContent = formatDate(lastCommitDate) + ' at ' + lastCommitTime;
+            } else {
+                updateDateElement.textContent = 'No commits found';
+            }
+        })
+        .catch(() => {
+            updateDateElement.textContent = 'Error fetching date';
+        });
 }
 
 function importExcel() {
-  updateLastUpdatedDate();  // Update the date before importing the Excel file
+    updateLastUpdatedDate();  // Update the date before importing the Excel file
 
-  makeRequest(
-    'GET',
-    `https://raw.githubusercontent.com/${repoOwner}/${repoName}/main/${filePath}`,
-    // success
-    function (data) {
-      var workbook = convertDataToWorkbook(data);
-      populateGrid(workbook);
-    },
-    // error
-    function (error) {
-      throw error;
+    const SOURCE = 'github'; // Set this to 'local' if you want to test with local files
+
+    if (SOURCE === 'github') {
+        makeRequest(
+            'GET',
+            `https://raw.githubusercontent.com/${repoOwner}/${repoName}/main/${filePath}`,
+            function (data) {
+                var workbook = convertDataToWorkbook(data);
+                populateGrid(workbook);
+            },
+            function (error) {
+                console.error('Error fetching data from GitHub:', error);
+            }
+        );
     }
-  );
+
+    if (SOURCE === 'local') {
+        // Dynamically create an input element to select a file
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = '.xlsx';
+        fileInput.style.display = 'none';
+
+        fileInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const data = e.target.result;
+                    const workbook = XLSX.read(data, { type: 'binary' });
+                    populateGrid(workbook);
+                };
+                reader.readAsBinaryString(file);
+            }
+        });
+
+        document.body.appendChild(fileInput);
+        fileInput.click();
+    }
 }
 
-
-
-// wait for the document to be loaded, otherwise
-// AG Grid will not find the div in the document.
+// Wait for the document to be loaded, otherwise AG Grid will not find the div in the document.
 document.addEventListener('DOMContentLoaded', function () {
-  // lookup the container we want the Grid to use
-  var eGridDiv = document.querySelector('#myGrid');
+    // Lookup the container we want the Grid to use
+    var eGridDiv = document.querySelector('#myGrid');
 
-  // create the grid passing in the div to use together with the columns & data we want to use
-  gridApi = agGrid.createGrid(eGridDiv, gridOptions);
+    // Create the grid passing in the div to use together with the columns & data we want to use
+    gridApi = agGrid.createGrid(eGridDiv, gridOptions);
 
-  // call importExcel function
-  importExcel();
+    // Call importExcel function
+    importExcel();
 });
