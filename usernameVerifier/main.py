@@ -370,7 +370,7 @@ def process_codeforces(participants):
         logging.info(f"The content of the batch {index} is {batch}")
 
     for index, batch in enumerate(batches, start=1):
-        time.sleep(200)
+        time.sleep(60)
         current_batch_message = f"""
 
         =======================================================
@@ -382,7 +382,7 @@ def process_codeforces(participants):
         logging.debug(f"Processing batch {index} of {len(batches)}")
 
         while True:
-            time.sleep(200)
+            time.sleep(60)
             # Fetch user information
             response_json = check_codeforces_users(batch)
             if response_json["status"] == "OK":
