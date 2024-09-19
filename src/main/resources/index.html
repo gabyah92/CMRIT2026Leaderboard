@@ -6,71 +6,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CMRIT 2026 Leaderboard</title>
     <link rel="shortcut icon" type="image/x-icon" href="https://github.com/gabyah92/CMRIT2026Leaderboard/blob/main/lib/logonobg.png?raw=true">
-    <!-- AG Grid CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-theme-alpine.css">
-    <!-- XLSX Library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'custom-blue': '#356a9b',
-                        'custom-orange': '#FFA500',
-                        'custom-dark': '#4d2731',
-                    },
-                    backgroundImage: {
-                        'glass': 'rgba(255, 255, 255, 0.1)',
-                    },
-                    backdropBlur: {
-                        'lg': '10px',
-                    }
-                }
-            }
-        }
-    </script>
-    <style type="text/tailwindcss">
-        @layer utilities {
-            .glass {
-                background: rgba(255, 255, 255, 0.1);
-                backdrop-filter: blur(10px);
-                border-radius: 0.5rem;
-            }
-        }
-    </style>
     <style>
         body {
             -webkit-text-size-adjust: 100%;
             text-size-adjust: 100%;
-        }
-        #nav-toggle:checked ~ #mobile-menu {
-            display: block;
-        }
-        #nav-toggle:checked ~ label[for="nav-toggle"] .open {
-            display: none;
-        }
-        #nav-toggle:checked ~ label[for="nav-toggle"] .close {
-            display: block;
-        }
-        #nav-toggle:not(:checked) ~ label[for="nav-toggle"] .open {
-            display: block;
-        }
-        #nav-toggle:not(:checked) ~ label[for="nav-toggle"] .close {
-            display: none;
-        }
-        @media (min-width: 768px) {
-            #mobile-menu {
-                display: flex !important;
-            }
+            background: linear-gradient(to bottom right, #000000, #ff4c4c); /* Red to black gradient */
         }
     </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.1/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.0/papaparse.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.js"></script>
 </head>
 
-<body class="bg-black text-white font-sans antialiased">
+<body class="text-white font-sans antialiased">
     <header class="bg-opacity-60 bg-black p-4 fixed w-full top-0 left-0 shadow-md z-50">
         <div class="container mx-auto flex items-center justify-between">
             <!-- Logo -->
@@ -78,40 +24,15 @@
     
             <!-- Title -->
             <h1 class="text-xl font-bold text-white md:mr-auto">CMRIT 2026 Leaderboard</h1>
-    
-            <!-- Navigation -->
-            <nav>
-                <input type="checkbox" id="nav-toggle" class="hidden">
-                <label for="nav-toggle" class="md:hidden text-custom-orange cursor-pointer">
-                    <svg class="w-6 h-6 open" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
-                    </svg>
-                    <svg class="w-6 h-6 close" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </label>
-                <ul id="mobile-menu" class="hidden md:flex md:space-x-4 absolute md:relative top-full left-0 right-0 bg-black md:bg-transparent p-4 md:p-0">
-                    <li><a href="index.html" class="block py-2 px-4 text-custom-orange hover:text-yellow-300 transition-colors duration-300">Leaderboard</a></li>
-                    <li><a href="users.html" class="block py-2 px-4 text-custom-orange hover:text-yellow-300 transition-colors duration-300">User Handles</a></li>
-                </ul>
-            </nav>
         </div>
     </header>
 
-    <main class="pt-20 pb-8 min-h-screen">
-        <div class="container mx-auto p-4 glass shadow-lg">
-            <div id="lastUpdated" class="text-center mt-4">
-                <h2 class="text-lg font-semibold mb-2">Last Updated: <span id="updateDate" class="text-blue-400"></span></h2>
-            </div>  
-            <div id="myGrid" class="ag-theme-alpine-dark w-full h-[calc(100vh-8rem)]"></div>          
-            <div class="text-center mt-4">
-                <h1 class="text-lg font-semibold mb-2">Excel Sheet: <a href="https://github.com/gabyah92/CMRIT2026Leaderboard/raw/main/Leaderboards/CurrentCMRITLeaderboard2026.xlsx" class="text-blue-400 hover:underline">Download</a></h1>
-                <h1 class="text-lg font-semibold">App By: <a href="https://www.instagram.com/gabyah92" class="text-blue-400 hover:underline">gabyah92</a> & <a href="https://github.com/dog-broad" class="text-blue-400 hover:underline">Rushyendra</a></h1>
-            </div>
+    <main class="pt-20 pb-8 min-h-screen flex items-center justify-center">
+        <div class="text-center p-4 bg-black bg-opacity-70 rounded-lg shadow-lg">
+            <h2 class="text-lg font-semibold mb-2">We have moved to:</h2>
+            <a href="https://dog-broad.github.io/pyramid-leaderboards/" class="text-blue-400 hover:underline text-xl">https://dog-broad.github.io/pyramid-leaderboards/</a>
         </div>
     </main>
-
-    <script src="app.js"></script>
 </body>
 
 </html>
